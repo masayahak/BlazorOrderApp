@@ -9,6 +9,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddScoped<I¤•iRepository, ¤•iRepository>();
 builder.Services.AddScoped<I“¾ˆÓæRepository, “¾ˆÓæRepository>();
+builder.Services.AddScoped<IŽó’Repository, Žó’Repository>();
 
 var app = builder.Build();
 

@@ -92,7 +92,7 @@
         if (isEdit)
         {
             // 編集時：既存データ取得
-            var item = await 商品Repository.GetByIdAsync(商品コード!);
+            var item = await 商品Repository.GetByCodeAsync(商品コード!);
             if (item != null)
                 model = item;
         }

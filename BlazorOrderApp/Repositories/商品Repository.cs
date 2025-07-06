@@ -7,7 +7,7 @@ namespace BlazorOrderApp.Repositories
     public interface I商品Repository
     {
         Task<IEnumerable<商品Model>> GetAllAsync();
-        Task<商品Model?> GetByIdAsync(string 商品コード);
+        Task<商品Model?> GetByCodeAsync(string 商品コード);
         Task AddAsync(商品Model model);
         Task UpdateAsync(商品Model model);
         Task DeleteAsync(string 商品コード);
@@ -22,7 +22,7 @@ namespace BlazorOrderApp.Repositories
             _connectionString = config.GetConnectionString("DefaultConnection")!;
         }
 
-        // 検索 Select (ページング対応)
+        // 検索
         public async Task<IEnumerable<商品Model>> GetAllAsync()
         {
             using var conn = new SqlConnection(_connectionString);
@@ -37,7 +37,8 @@ namespace BlazorOrderApp.Repositories
             return list;
         }
 
-        public async Task<商品Model?> GetByIdAsync(string 商品コード)
+        // 単一 Select
+        public async Task<商品Model?> GetByCodeAsync(string 商品コード)
         {
             using var conn = new SqlConnection(_connectionString);
 

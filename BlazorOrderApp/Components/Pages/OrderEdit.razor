@@ -1,0 +1,299 @@
+﻿@page "/orders/edit/"
+@page "/orders/edit/{受注ID:int?}"
+
+@using BlazorOrderApp.Models
+@using BlazorOrderApp.Repositories
+@inject I受注Repository 受注Repository
+@inject I得意先Repository 得意先Repository
+@inject I商品Repository 商品Repository
+@inject NavigationManager Navigation
+
+<h3>受注 @((IsEdit ? "修正" : "追加"))</h3>
+
+@if (受注 is null)
+{
+    <div>データ取得中...</div>
+}
+else
+{
+    <EditForm Model="受注" OnValidSubmit="OnValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <input type="hidden" value="@IsEdit" />
+        <input type="hidden" value="@受注.受注ID" />
+
+        <div class="row mb-2">
+            <div class="col-md-2">
+                <label class="form-label">受注日</label>
+                <InputDate @bind-Value="受注.受注日" class="form-control" />
+            </div>
+            <div class="col-md-8 position-relative">
+                <label class="form-label">得意先名</label>
+                <InputText @bind-Value="得意先名入力" class="form-control" placeholder="(得意先名を中間一致で検索できます)"
+                           @oninput="On得意先入力" autocomplete="off" />
+                <input type="hidden" value="@受注.得意先ID" />
+                <input type="hidden" value="@受注.得意先名" />
+                <div class="list-group position-absolute w-100" style="z-index:10;"
+                     hidden="@(!得意先候補.Any() || 得意先名入力 == 受注.得意先名)">
+                    @foreach (var c in 得意先候補)
+                    {
+                        <button type="button" class="list-group-item list-group-item-action"
+                                @onclick="() => On得意先選択(c)">
+                            @c.得意先名
+                        </button>
+                    }
+                </div>
+            </div>
+            <div class="mb-2 col-md-2">
+                <label class="form-label text-center w-100">合計金額</label>
+                <!-- 編集不可な値は普通のinputでOK -->
+                <input type="text" class="form-control text-end bg-light border readonly-field"
+                       value="@受注.合計金額.ToString("¥#,##0")" readonly />
+            </div>
+        </div>
+
+        <hr class="my-4" />
+        <div class="d-flex align-items-center mb-2">
+            <h5 class="fw-bold text-primary mb-0 me-3">▶ 明細一覧</h5>
+            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="On明細追加">＋行を追加</button>
+        </div>
+        <hr class="my-2" />
+
+        <table class="table table-sm">
+            <thead class="custom-header">
+                <tr>
+                    <th style="width:15%">商品コード</th>
+                    <th style="width:50%">商品名</th>
+                    <th class="text-center" style="width:12%">単価</th>
+                    <th class="text-center" style="width:12%">数量</th>
+                    <th class="text-center" style="width:10%">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < 受注.明細一覧.Count; i++)
+                {
+                    var m = 受注.明細一覧[i];
+                    <tr>
+                        <td>
+                            <input type="text"
+                                   value="@m.商品コード"
+                                   @onchange="@(async (ChangeEventArgs e) => await On商品コード入力(m, e.Value?.ToString()))"
+                                   class="form-control" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input type="text" value="@m.商品名" class="form-control bg-light readonly-field" readonly />
+                        </td>
+                        <td>
+                            <input type="text" class="form-control text-end bg-light readonly-field"
+                                   value="@(m.単価 > 0 ? $"¥{m.単価:#,##0}" : "")" readonly />
+                        </td>
+                        <td>
+                            <input type="number"
+                                   value="@m.数量"
+                                   @onchange="e => On数量変更(m, e.Value)"
+                                   class="form-control text-end" min="0" autocomplete="off" />
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => On明細クリア(i)">クリア</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="mb-2">
+            <label class="form-label">備考</label>
+            <InputTextArea @bind-Value="受注.備考" class="form-control" />
+        </div>
+
+        <div class="mt-3 d-flex justify-content-between">
+            @if (IsEdit)
+            {
+                <button type="button" class="btn btn-danger px-5" @onclick="ShowDeleteConfirm">削除</button>
+            }
+            else
+            {
+                <div style="width: 120px;"></div>
+            }
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-primary px-5">保存</button>
+                <button type="button" class="btn btn-secondary px-5" @onclick="OnCancel">戻る</button>
+            </div>
+        </div>
+    </EditForm>
+}
+
+@if (showDeleteConfirm)
+{
+    <div class="border rounded shadow p-4 bg-white position-fixed" style="top:30%; left:50%; transform:translate(-50%, -30%); z-index:1050;">
+        <p class="mb-4">本当に削除しますか？</p>
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" @onclick="HideDeleteConfirm">キャンセル</button>
+            <button type="button" class="btn btn-danger" @onclick="OnDelete">削除</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, SupplyParameterFromQuery]
+    public int? 受注ID { get; set; }
+    [Parameter, SupplyParameterFromQuery]
+    public string? StartDate { get; set; }
+    [Parameter, SupplyParameterFromQuery]
+    public string? EndDate { get; set; }
+    [Parameter, SupplyParameterFromQuery]
+    public string? Keyword { get; set; }
+
+    private 受注Model 受注 = new();
+    private string 得意先名入力 = string.Empty;
+    private List<得意先Model> 得意先候補 = new();
+    private bool showDeleteConfirm = false;
+
+    private bool IsEdit => (受注?.受注ID ?? 0) > 0;
+
+    // ==================================================
+    // コンストラクタ
+    // ==================================================
+    protected override async Task OnInitializedAsync()
+    {
+        // ----- 修正時 -----
+        if (受注ID.HasValue && 受注ID.Value > 0)
+        {
+            var item = await 受注Repository.GetByIdAsync(受注ID.Value);
+            if (item != null)
+            {
+                受注 = item;
+            }
+        }
+        // ----- 登録時 -----
+        if (受注.受注ID== 0 && (受注.明細一覧 == null || 受注.明細一覧.Count == 0))
+        {
+            受注.受注日 = DateTime.Today;
+
+            // 明細を1行初期表示
+            On明細追加();
+        }
+        得意先名入力 = 受注?.得意先名 ?? "";
+        再計算合計金額();
+    }
+
+    // ==================================================
+    // 得意先の入力
+    // ==================================================
+    private async Task On得意先入力(ChangeEventArgs e)
+    {
+        得意先名入力 = e.Value?.ToString() ?? "";
+        if (!string.IsNullOrWhiteSpace(得意先名入力))
+        {
+            var list = await 得意先Repository.GetAllAsync();
+            得意先候補 = list.Where(x => x.得意先名.Contains(得意先名入力)).ToList();
+        }
+        else
+        {
+            得意先候補.Clear();
+        }
+    }
+
+    private void On得意先選択(得意先Model c)
+    {
+        受注.得意先ID = c.得意先ID;
+        受注.得意先名 = c.得意先名;
+        得意先名入力 = c.得意先名;
+        得意先候補.Clear();
+    }
+
+    // ==================================================
+    // 商品コードの入力
+    // ==================================================
+    private async Task On商品コード入力(受注明細Model m, string? 商品コード)
+    {
+        m.商品コード = 商品コード ?? "";
+
+        if (string.IsNullOrWhiteSpace(商品コード))
+        {
+            m.商品名 = "";
+            m.単価 = 0;
+            再計算合計金額();
+            return;
+        }
+        var p = await 商品Repository.GetByCodeAsync(商品コード);
+        if (p is not null)
+        {
+            m.商品名 = p.商品名;
+            m.単価 = p.単価;
+        }
+        else
+        {
+            m.商品名 = "";
+            m.単価 = 0;
+        }
+        再計算合計金額();
+    }
+
+    private void On数量変更(受注明細Model m, object? value)
+    {
+        if (value is int intValue)
+            m.数量 = intValue;
+        else if (value is null)
+            m.数量 = 0; // or nullでもOK
+        else
+            m.数量 = Convert.ToInt32(value);
+            
+        再計算合計金額();
+    }
+
+    private void 再計算合計金額()
+    {
+        if (受注 == null || 受注.明細一覧 == null) return;
+        受注.合計金額 = 受注.明細一覧.Sum(x => x.単価 * x.数量);
+    }
+
+    private void On明細追加()
+    {
+        if (受注?.明細一覧 == null) return;
+        if (受注.明細一覧.Count < 10)
+            受注.明細一覧.Add(new 受注明細Model());
+    }
+
+    private void On明細クリア(int index)
+    {
+        if (受注?.明細一覧 == null) return;
+        if (index < 受注.明細一覧.Count)
+        {
+            受注.明細一覧[index] = new 受注明細Model();
+            再計算合計金額();
+        }
+    }
+
+    private void ShowDeleteConfirm() => showDeleteConfirm = true;
+    private void HideDeleteConfirm() => showDeleteConfirm = false;
+
+    private async Task OnValidSubmit()
+    {
+        if (IsEdit)
+            await 受注Repository.UpdateAsync(受注);
+        else
+            await 受注Repository.AddAsync(受注);
+
+        NavToIndex();
+    }
+
+    private async Task OnDelete()
+    {
+        if (受注 == null) return;
+        await 受注Repository.DeleteAsync(受注.受注ID);
+        NavToIndex();
+    }
+
+    private void OnCancel()
+    {
+        NavToIndex();
+    }
+
+    private void NavToIndex()
+    {
+        var url = $"orders/?StartDate={StartDate}&EndDate={EndDate}&Keyword={Keyword}";
+        Navigation.NavigateTo(url);
+    }
+}
