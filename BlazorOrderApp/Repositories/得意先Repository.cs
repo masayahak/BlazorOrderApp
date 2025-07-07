@@ -7,6 +7,7 @@ namespace BlazorOrderApp.Repositories
     public interface I得意先Repository
     {
         Task<IEnumerable<得意先Model>> GetAllAsync();
+        Task<IEnumerable<得意先Model>> SearchAsync(string keyword);
         Task<得意先Model?> GetByIdAsync(string? 得意先ID);
         Task AddAsync(得意先Model model);
         Task UpdateAsync(得意先Model model);
@@ -22,7 +23,7 @@ namespace BlazorOrderApp.Repositories
             _connectionString = config.GetConnectionString("DefaultConnection")!;
         }
 
-        // 検索 Select (ページング対応)
+        // 全件Select
         public async Task<IEnumerable<得意先Model>> GetAllAsync()
         {
             using var conn = new SqlConnection(_connectionString);
@@ -33,6 +34,23 @@ namespace BlazorOrderApp.Repositories
                  order by 得意先名
             ";
             var list = await conn.QueryAsync<得意先Model>(dataSql);
+
+            return list;
+        }
+
+        // 検索
+        public async Task<IEnumerable<得意先Model>> SearchAsync(string keyword)
+        {
+            using var conn = new SqlConnection(_connectionString);
+
+            var dataSql = @"
+                select top 10
+                        得意先ID, 得意先名, 電話番号, 備考
+                  from 得意先
+                where ( 得意先名 like @keyword )
+                 order by 得意先名
+            ";
+            var list = await conn.QueryAsync<得意先Model>(dataSql, new { keyword = $"%{keyword}%" });
 
             return list;
         }

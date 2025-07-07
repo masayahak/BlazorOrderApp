@@ -1,0 +1,43 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+
+<div class="position-relative w-100">
+    <InputText @bind-Value="Value"
+               class="form-control"
+               placeholder="@Placeholder"
+               @onkeydown="OnKeyDown"
+               autocomplete="off" />
+    <div class="list-group position-absolute w-100" style="z-index:10;"
+         hidden="@(候補.Count == 0)">
+        @foreach (var item in 候補)
+        {
+            <button type="button" class="list-group-item list-group-item-action"
+                    @onclick="() => On候補選択(item)">
+                @候補表示(item)
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "";
+    [Parameter] public List<object> 候補 { get; set; } = new();
+    [Parameter] public Func<object, string> 候補表示 { get; set; } = x => x?.ToString() ?? "";
+    [Parameter] public EventCallback<object> 候補選択 { get; set; }
+    [Parameter] public string? 選択済名 { get; set; }
+    [Parameter] public EventCallback<string> OnArrowDown { get; set; }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "ArrowDown" && OnArrowDown.HasDelegate)
+        {
+            await OnArrowDown.InvokeAsync(Value);
+        }
+    }
+
+    private void On候補選択(object item)
+    {
+        候補選択.InvokeAsync(item);
+    }
+}

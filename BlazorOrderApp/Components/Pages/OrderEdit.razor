@@ -1,6 +1,7 @@
 ﻿@page "/orders/edit/"
 @page "/orders/edit/{受注ID:int?}"
 
+@using BlazorOrderApp.Components.Commons 
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
 @inject I受注Repository 受注Repository
@@ -28,10 +29,13 @@ else
                 <label class="form-label">受注日</label>
                 <InputDate @bind-Value="受注.受注日" class="form-control" />
             </div>
-            <div class="col-md-8 position-relative">
+            <div class="col-md-4 position-relative">
                 <label class="form-label">得意先名</label>
-                <InputText @bind-Value="得意先名入力" class="form-control" placeholder="(得意先名を中間一致で検索できます)"
-                           @oninput="On得意先入力" autocomplete="off" />
+                <InputText @bind-Value="得意先名入力"
+                           class="form-control"
+                           placeholder="(得意先名で検索 ↓)"
+                           @oninput="On得意先Input"
+                           autocomplete="off" />
                 <input type="hidden" value="@受注.得意先ID" />
                 <input type="hidden" value="@受注.得意先名" />
                 <div class="list-group position-absolute w-100" style="z-index:10;"
@@ -95,7 +99,7 @@ else
                                    class="form-control text-end" min="0" autocomplete="off" />
                         </td>
                         <td class="text-center">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => On明細クリア(i)">クリア</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => On明細削除(m)">削除</button>
                         </td>
                     </tr>
                 }
@@ -146,10 +150,8 @@ else
     public string? Keyword { get; set; }
 
     private 受注Model 受注 = new();
-    private string 得意先名入力 = string.Empty;
-    private List<得意先Model> 得意先候補 = new();
-    private bool showDeleteConfirm = false;
 
+    private bool showDeleteConfirm = false;
     private bool IsEdit => (受注?.受注ID ?? 0) > 0;
 
     // ==================================================
@@ -181,26 +183,51 @@ else
     // ==================================================
     // 得意先の入力
     // ==================================================
-    private async Task On得意先入力(ChangeEventArgs e)
+    private string 得意先名入力 = "";
+    private List<得意先Model> 得意先候補 = new();
+
+    private CancellationTokenSource? debounceCts;
+    private async Task On得意先Input(ChangeEventArgs e)
     {
         得意先名入力 = e.Value?.ToString() ?? "";
-        if (!string.IsNullOrWhiteSpace(得意先名入力))
-        {
-            var list = await 得意先Repository.GetAllAsync();
-            得意先候補 = list.Where(x => x.得意先名.Contains(得意先名入力)).ToList();
-        }
-        else
+        if (得意先名入力.Length < 2)
         {
             得意先候補.Clear();
+            return;
+        }
+
+        debounceCts?.Cancel();
+        debounceCts = new CancellationTokenSource();
+        var token = debounceCts.Token;
+        try
+        {
+            // 300ms待機（入力が止まるまで）
+            await Task.Delay(300, token);
+            if (!token.IsCancellationRequested)
+            {
+                得意先候補 = (await 得意先Repository.SearchAsync(得意先名入力)).ToList();
+                StateHasChanged();
+            }
+            else
+            {
+                得意先候補.Clear();
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // キャンセル時は何もしない
         }
     }
 
-    private void On得意先選択(得意先Model c)
+    private void On得意先選択(object c)
     {
-        受注.得意先ID = c.得意先ID;
-        受注.得意先名 = c.得意先名;
-        得意先名入力 = c.得意先名;
-        得意先候補.Clear();
+        if (c is 得意先Model model)
+        {
+            受注.得意先ID = model.得意先ID;
+            受注.得意先名 = model.得意先名;
+            得意先名入力 = model.得意先名;
+            得意先候補.Clear();
+        }
     }
 
     // ==================================================
@@ -256,14 +283,11 @@ else
             受注.明細一覧.Add(new 受注明細Model());
     }
 
-    private void On明細クリア(int index)
+    private void On明細削除(受注明細Model m)
     {
         if (受注?.明細一覧 == null) return;
-        if (index < 受注.明細一覧.Count)
-        {
-            受注.明細一覧[index] = new 受注明細Model();
-            再計算合計金額();
-        }
+        受注.明細一覧.Remove(m);
+        再計算合計金額();
     }
 
     private void ShowDeleteConfirm() => showDeleteConfirm = true;
