@@ -2,17 +2,17 @@
 
 <div class="position-relative w-100">
     <InputText @bind-Value="Value"
-               class="form-control"
+               class="@InputClass"
                placeholder="@Placeholder"
-               @onkeydown="OnKeyDown"
+               @oninput="OnInput"
                autocomplete="off" />
     <div class="list-group position-absolute w-100" style="z-index:10;"
-         hidden="@(候補.Count == 0)">
-        @foreach (var item in 候補)
+         hidden="@(SuggestList.Count == 0)">
+        @foreach (var item in SuggestList)
         {
             <button type="button" class="list-group-item list-group-item-action"
                     @onclick="() => On候補選択(item)">
-                @候補表示(item)
+                @item.Name
             </button>
         }
     </div>
@@ -22,22 +22,63 @@
     [Parameter] public string Value { get; set; } = "";
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
     [Parameter] public string Placeholder { get; set; } = "";
-    [Parameter] public List<object> 候補 { get; set; } = new();
-    [Parameter] public Func<object, string> 候補表示 { get; set; } = x => x?.ToString() ?? "";
-    [Parameter] public EventCallback<object> 候補選択 { get; set; }
-    [Parameter] public string? 選択済名 { get; set; }
-    [Parameter] public EventCallback<string> OnArrowDown { get; set; }
+    [Parameter] public string InputClass { get; set; } = "form-control";
+    [Parameter] public int MinChars { get; set; } = 2;
+    [Parameter] public Func<string, Task<List<SuggestModel>>>? FetchSuggestions { get; set; }
+    [Parameter] public EventCallback<SuggestModel> OnSelect { get; set; }
 
-    private async Task OnKeyDown(KeyboardEventArgs e)
+    public class SuggestModel
     {
-        if (e.Key == "ArrowDown" && OnArrowDown.HasDelegate)
+        public string Code { get; set; } = "";
+        public string Name { get; set; } = "";
+        public object? AddInfo { get; set; }
+    }
+    private List<SuggestModel> SuggestList { get; set; } = new();
+
+    private CancellationTokenSource? debounceCts;
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        var input = e.Value?.ToString() ?? "";
+        await ValueChanged.InvokeAsync(input);
+
+        if (input.Length < MinChars)
         {
-            await OnArrowDown.InvokeAsync(Value);
+            SuggestList.Clear();
+            StateHasChanged();
+            return;
+        }
+
+        debounceCts?.Cancel();
+        debounceCts = new CancellationTokenSource();
+        var token = debounceCts.Token;
+
+        try
+        {
+            await Task.Delay(300, token);
+            if (!token.IsCancellationRequested && FetchSuggestions != null)
+            {
+                var result = await FetchSuggestions(input);
+                SuggestList = result;
+                StateHasChanged();
+            }
+            else
+            {
+                SuggestList.Clear();
+                StateHasChanged();
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // 無視
         }
     }
 
-    private void On候補選択(object item)
+    private void On候補選択(SuggestModel item)
     {
-        候補選択.InvokeAsync(item);
+        OnSelect.InvokeAsync(item);
+        SuggestList.Clear();
+        StateHasChanged();
     }
+
 }

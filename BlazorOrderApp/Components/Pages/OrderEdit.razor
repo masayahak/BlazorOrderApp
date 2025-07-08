@@ -4,6 +4,8 @@
 @using BlazorOrderApp.Components.Commons 
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
+@using static BlazorOrderApp.Components.Commons.SuggestTextBox
+
 @inject I受注Repository 受注Repository
 @inject I得意先Repository 得意先Repository
 @inject I商品Repository 商品Repository
@@ -31,24 +33,17 @@ else
             </div>
             <div class="col-md-4 position-relative">
                 <label class="form-label">得意先名</label>
-                <InputText @bind-Value="得意先名入力"
-                           class="form-control"
-                           placeholder="(得意先名で検索 ↓)"
-                           @oninput="On得意先Input"
-                           autocomplete="off" />
+                <SuggestTextBox Value="@得意先名入力"
+                                ValueChanged="@(v => 得意先名入力 = v)"
+                                Placeholder="(得意先名で検索 ↓)"
+                                MinChars=2
+                                FetchSuggestions="Fetch得意先サジェスト"
+                                OnSelect="On得意先Select"
+                                InputClass="form-control" />
                 <input type="hidden" value="@受注.得意先ID" />
                 <input type="hidden" value="@受注.得意先名" />
-                <div class="list-group position-absolute w-100" style="z-index:10;"
-                     hidden="@(!得意先候補.Any() || 得意先名入力 == 受注.得意先名)">
-                    @foreach (var c in 得意先候補)
-                    {
-                        <button type="button" class="list-group-item list-group-item-action"
-                                @onclick="() => On得意先選択(c)">
-                            @c.得意先名
-                        </button>
-                    }
-                </div>
             </div>
+
             <div class="mb-2 col-md-2">
                 <label class="form-label text-center w-100">合計金額</label>
                 <!-- 編集不可な値は普通のinputでOK -->
@@ -184,50 +179,26 @@ else
     // 得意先の入力
     // ==================================================
     private string 得意先名入力 = "";
-    private List<得意先Model> 得意先候補 = new();
 
-    private CancellationTokenSource? debounceCts;
-    private async Task On得意先Input(ChangeEventArgs e)
+    // 得意先サジェスト入力
+    private async Task<List<SuggestTextBox.SuggestModel>> Fetch得意先サジェスト(string keyword)
     {
-        得意先名入力 = e.Value?.ToString() ?? "";
-        if (得意先名入力.Length < 2)
+        var list = await 得意先Repository.SearchAsync(keyword);
+        return list.Select(c => new SuggestTextBox.SuggestModel
         {
-            得意先候補.Clear();
-            return;
-        }
-
-        debounceCts?.Cancel();
-        debounceCts = new CancellationTokenSource();
-        var token = debounceCts.Token;
-        try
-        {
-            // 300ms待機（入力が止まるまで）
-            await Task.Delay(300, token);
-            if (!token.IsCancellationRequested)
-            {
-                得意先候補 = (await 得意先Repository.SearchAsync(得意先名入力)).ToList();
-                StateHasChanged();
-            }
-            else
-            {
-                得意先候補.Clear();
-            }
-        }
-        catch (TaskCanceledException)
-        {
-            // キャンセル時は何もしない
-        }
+            Code = c.得意先ID.ToString(),
+            Name = c.得意先名
+        }).ToList();
     }
 
-    private void On得意先選択(object c)
+    // 得意先サジェスト選択
+    private void On得意先Select(SuggestTextBox.SuggestModel? item)
     {
-        if (c is 得意先Model model)
-        {
-            受注.得意先ID = model.得意先ID;
-            受注.得意先名 = model.得意先名;
-            得意先名入力 = model.得意先名;
-            得意先候補.Clear();
-        }
+        if (item is null) return;
+
+        受注.得意先ID = int.Parse(item.Code);
+        受注.得意先名 = item.Name;
+        得意先名入力 = item.Name;
     }
 
     // ==================================================
