@@ -1,7 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
 
 <div class="position-relative w-100">
-    <InputText @bind-Value="Value"
+    <InputText @bind-Value="_input"
                class="@InputClass"
                placeholder="@Placeholder"
                @oninput="OnInput"
@@ -20,29 +20,29 @@
 
 @code {
     [Parameter] public string Value { get; set; } = "";
-    [Parameter] public EventCallback<string> ValueChanged { get; set; }
     [Parameter] public string Placeholder { get; set; } = "";
     [Parameter] public string InputClass { get; set; } = "form-control";
-    [Parameter] public int MinChars { get; set; } = 2;
     [Parameter] public Func<string, Task<List<SuggestModel>>>? FetchSuggestions { get; set; }
+    [Parameter] public int StartSearchChars { get; set; } = 2;
     [Parameter] public EventCallback<SuggestModel> OnSelect { get; set; }
 
-    public class SuggestModel
-    {
-        public string Code { get; set; } = "";
-        public string Name { get; set; } = "";
-        public object? AddInfo { get; set; }
-    }
+    private string _input = "";
     private List<SuggestModel> SuggestList { get; set; } = new();
 
     private CancellationTokenSource? debounceCts;
 
+    protected override void OnParametersSet()
+    {
+        // 親から初期値だけ反映（手動変更時のみ）
+        if (string.IsNullOrEmpty(_input) && !string.IsNullOrEmpty(Value))
+            _input = Value;
+    }
+
     private async Task OnInput(ChangeEventArgs e)
     {
-        var input = e.Value?.ToString() ?? "";
-        await ValueChanged.InvokeAsync(input);
+        _input = e.Value?.ToString() ?? "";
 
-        if (input.Length < MinChars)
+        if (_input.Length < StartSearchChars)
         {
             SuggestList.Clear();
             StateHasChanged();
@@ -58,7 +58,7 @@
             await Task.Delay(300, token);
             if (!token.IsCancellationRequested && FetchSuggestions != null)
             {
-                var result = await FetchSuggestions(input);
+                var result = await FetchSuggestions(_input);
                 SuggestList = result;
                 StateHasChanged();
             }
@@ -74,11 +74,18 @@
         }
     }
 
-    private void On候補選択(SuggestModel item)
+    private async void On候補選択(SuggestModel item)
     {
-        OnSelect.InvokeAsync(item);
+        _input = item.Name;
         SuggestList.Clear();
         StateHasChanged();
+        await OnSelect.InvokeAsync(item); // 選択だけ親に通知
     }
 
+    public class SuggestModel
+    {
+        public string Code { get; set; } = "";
+        public string Name { get; set; } = "";
+        public object? AddInfo { get; set; }
+    }
 }
