@@ -2,6 +2,8 @@
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
 @inject I受注Repository 受注Repository
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@attribute [Authorize]
 
 <h2 class="mb-3">受注一覧</h2>
 

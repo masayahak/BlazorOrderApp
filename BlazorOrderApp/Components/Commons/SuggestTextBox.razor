@@ -12,7 +12,7 @@
         {
             <button type="button" class="list-group-item list-group-item-action"
                     @onclick="() => On候補選択(item)">
-                @item.Name
+                @item.DspOnList
             </button>
         }
     </div>
@@ -25,6 +25,7 @@
     [Parameter] public Func<string, Task<List<SuggestModel>>>? FetchSuggestions { get; set; }
     [Parameter] public int StartSearchChars { get; set; } = 2;
     [Parameter] public EventCallback<SuggestModel> OnSelect { get; set; }
+    [Parameter] public Func<SuggestModel, string>? DisplayValueSelector { get; set; }
 
     private string _input = "";
     private List<SuggestModel> SuggestList { get; set; } = new();
@@ -76,16 +77,20 @@
 
     private async void On候補選択(SuggestModel item)
     {
-        _input = item.Name;
+        if (DisplayValueSelector != null)
+            _input = DisplayValueSelector(item);
+        else
+            _input = item.Name; // デフォルト
         SuggestList.Clear();
         StateHasChanged();
-        await OnSelect.InvokeAsync(item); // 選択だけ親に通知
+        await OnSelect.InvokeAsync(item);
     }
 
     public class SuggestModel
     {
         public string Code { get; set; } = "";
         public string Name { get; set; } = "";
+        public string DspOnList { get; set; } = "";
         public object? AddInfo { get; set; }
     }
 }

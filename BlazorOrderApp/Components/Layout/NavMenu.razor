@@ -8,23 +8,48 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
+        <div class="small ms-3 mt-3 px-2 py-1 rounded" style="color: #fff; background: #234; opacity: 0.9;">
+            一般業務
+        </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="/orders" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> 受注
+                <span class="bi bi-order-nav-menu" aria-hidden="true"></span> 受注
             </NavLink>
         </div>
 
+        <hr class="my-2" style="opacity:0.3" />
+
+        @* マスタ管理は管理者のみ *@
+        <AuthorizeView Roles="Administrator">
+            <div>
+                <div class="small ms-3 mt-3 px-2 py-1 rounded" style="color: #fff; background: #234; opacity: 0.9;">
+                    マスタ管理
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/products">
+                        <span class="bi bi-product-nav-menu" aria-hidden="true"></span> 商品マスタ
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/customers">
+                        <span class="bi bi-customer-nav-menu" aria-hidden="true"></span> 得意先マスタ
+                    </NavLink>
+                </div>
+                <hr class="my-2" style="opacity:0.3" />
+            </div>
+        </AuthorizeView>
+
+        <div class="small ms-3 mt-3 px-2 py-1 rounded" style="color: #fff; background: #234; opacity: 0.9;">
+            業務終了
+        </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/products">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> 商品マスタ
+            <NavLink class="nav-link" href="/logout">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-door-closed" viewBox="0 0 16 16">
+                    <path d="M3 2a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v13h1.5a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1H3zm1 13h8V2H4z" />
+                    <path d="M9 9a1 1 0 1 0 2 0 1 1 0 0 0-2 0" />
+                </svg> ログアウト
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/customers">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> 得意先マスタ
-            </NavLink>
-        </div>
     </nav>
 </div>
-

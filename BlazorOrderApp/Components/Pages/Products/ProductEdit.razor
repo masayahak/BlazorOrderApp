@@ -5,6 +5,8 @@
 @using BlazorOrderApp.Repositories
 @inject I商品Repository 商品Repository
 @inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@attribute [Authorize]
 
 <h3>商品マスタ @((isEdit ? "修正" : "追加"))</h3>
 

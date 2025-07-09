@@ -2,6 +2,9 @@
 # IDE0028
 dotnet_diagnostic.IDE0028.severity = none
 
+# IDE0270: Nullチェック簡素化
+dotnet_diagnostic.IDE0270.severity = none
+
 # IDE0290: プライマリ コンストラクターの使用
 dotnet_diagnostic.IDE0290.severity = none
 

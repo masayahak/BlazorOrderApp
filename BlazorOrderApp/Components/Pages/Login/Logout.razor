@@ -1,0 +1,16 @@
+﻿@using BlazorOrderApp.Services
+
+@page "/logout"
+@inject MyAuthenticationService AuthService
+@inject NavigationManager NavigationManager
+
+@code {
+    private bool shouldReload = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.LogoutAsync();
+    }
+}
+
+<meta http-equiv="refresh" content="0;url=/login" />

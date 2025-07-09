@@ -10,6 +10,8 @@
 @inject I得意先Repository 得意先Repository
 @inject I商品Repository 商品Repository
 @inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@attribute [Authorize]
 
 <h3>受注 @((IsEdit ? "修正" : "追加"))</h3>
 
@@ -34,11 +36,12 @@ else
             <div class="col-md-4 position-relative">
                 <label class="form-label">得意先名</label>
                 <SuggestTextBox InputClass="form-control" 
-                                Placeholder="(得意先名で検索 ↓)"
+                                Placeholder="(得意先名で検索)"
                                 Value="@得意先名入力"
                                 StartSearchChars=2
                                 FetchSuggestions="Fetch得意先サジェスト"
                                 OnSelect="On得意先Select"
+                                DisplayValueSelector="@(item => item.Name)" 
                                 />
                 <input type="hidden" value="@受注.得意先ID" />
                 <input type="hidden" value="@受注.得意先名" />
@@ -62,8 +65,8 @@ else
         <table class="table table-sm">
             <thead class="custom-header">
                 <tr>
-                    <th style="width:15%">商品コード</th>
-                    <th style="width:50%">商品名</th>
+                    <th style="width:20%">商品コード</th>
+                    <th style="width:45%">商品名</th>
                     <th class="text-center" style="width:12%">単価</th>
                     <th class="text-center" style="width:12%">数量</th>
                     <th class="text-center" style="width:10%">操作</th>
@@ -80,7 +83,9 @@ else
                                             Value="@m.商品コード"
                                             StartSearchChars="2"
                                             FetchSuggestions="Fetch商品サジェスト"
-                                            OnSelect="@(item => On商品Select(item, m))" />
+                                            OnSelect="@(item => On商品Select(item, m))"
+                                            DisplayValueSelector="@(item => item.Code)" 
+                                            />
                         </td>
                         <td>
                             <input type="text" value="@m.商品名" class="form-control bg-light readonly-field" readonly />
@@ -200,7 +205,9 @@ else
             .Select(c => new SuggestTextBox.SuggestModel
             {
                 Code = c.得意先ID.ToString(),
-                Name = c.得意先名
+                Name = c.得意先名,
+                DspOnList = c.得意先名,
+                AddInfo = c
             })
             .ToList();
 
@@ -212,9 +219,10 @@ else
     {
         if (item is null) return;
 
-        受注.得意先ID = int.Parse(item.Code);
-        受注.得意先名 = item.Name;
-        得意先名入力 = item.Name;
+        var p = item.AddInfo as 得意先Model;
+        受注.得意先ID = p.得意先ID;
+        受注.得意先名 = p.得意先名;
+        得意先名入力 = p.得意先名;
     }
 
     // ==================================================
@@ -226,7 +234,8 @@ else
         return list.Select(p => new SuggestTextBox.SuggestModel
         {
             Code = p.商品コード,
-            Name = p.商品コード + " " + p.商品名, // 両方表示
+            Name = p.商品名,
+            DspOnList = p.商品コード + " " + p.商品名, // 両方表示
             AddInfo = p
         }).ToList();
     }
@@ -242,7 +251,7 @@ else
         else
         {
             var p = item.AddInfo as 商品Model;
-            明細.商品コード = item.Code;
+            明細.商品コード = p.商品コード;
             明細.商品名 = p?.商品名 ?? "";
             明細.単価 = p?.単価 ?? 0;
         }

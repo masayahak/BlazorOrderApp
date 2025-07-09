@@ -1,0 +1,45 @@
+﻿@using BlazorOrderApp.Services
+@using BlazorOrderApp.Components.Layout
+@page "/login"
+@layout EmptyLayout
+@inject NavigationManager NavigationManager
+@inject MyAuthenticationService AuthService
+@attribute [AllowAnonymous]
+@* rendermodeは Static Server 固定 *@
+
+<div class="d-flex justify-content-center" style="margin-top: 120px;">
+    <div class="card shadow-sm" style="width: 360px;">
+        <div class="card-body">
+            <h4 class="card-title text-center mb-4">ログイン</h4>
+            <div class="mb-2 text-muted small">
+                <div>管理者権限でログイン <span class="fw-bold">admin / admin</span></div>
+                <div>ユーザー権限でログイン <span class="fw-bold">test / test</span></div>
+            </div>
+            <EditForm Model="@loginUser" FormName="login-form" OnValidSubmit="LoginAsync">
+                <div class="mb-3">
+                    <label for="username" class="form-label">ユーザー名</label>
+                    <InputText id="username" @bind-Value="loginUser.UserName" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">パスワード</label>
+                    <InputText id="password" @bind-Value="loginUser.Password" class="form-control" type="password" />
+                </div>
+                <button type="submit" class="btn btn-primary w-100">ログイン</button>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private LoginModel loginUser { get; set; } = new();
+
+    private async Task LoginAsync()
+    {
+        var success = await AuthService.LoginAsync(loginUser);
+        if (success)
+        {
+            NavigationManager.NavigateTo("", forceLoad: true);
+        }
+    }
+}
