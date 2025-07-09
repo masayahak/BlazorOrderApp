@@ -75,10 +75,12 @@ else
                     var m = 受注.明細一覧[i];
                     <tr>
                         <td>
-                            <input type="text"
-                                   value="@m.商品コード"
-                                   @onchange="@(async (ChangeEventArgs e) => await On商品コード入力(m, e.Value?.ToString()))"
-                                   class="form-control" autocomplete="off" />
+                            <SuggestTextBox InputClass="form-control"
+                                            Placeholder="(商品コード/名で検索)"
+                                            Value="@m.商品コード"
+                                            StartSearchChars="2"
+                                            FetchSuggestions="Fetch商品サジェスト"
+                                            OnSelect="@(item => On商品Select(item, m))" />
                         </td>
                         <td>
                             <input type="text" value="@m.商品名" class="form-control bg-light readonly-field" readonly />
@@ -171,7 +173,12 @@ else
             // 明細を1行初期表示
             On明細追加();
         }
+
         得意先名入力 = 受注?.得意先名 ?? "";
+
+        // 得意先は最初に全件読み込み
+        得意先全件 = await 得意先Repository.GetAllAsync();
+
         再計算合計金額();
     }
 
@@ -179,16 +186,25 @@ else
     // 得意先の入力
     // ==================================================
     private string 得意先名入力 = "";
+    private List<得意先Model> 得意先全件 = new();
 
-    // 得意先サジェスト入力
-    private async Task<List<SuggestTextBox.SuggestModel>> Fetch得意先サジェスト(string keyword)
+    // サジェスト取得ロジック
+    private Task<List<SuggestTextBox.SuggestModel>> Fetch得意先サジェスト(string keyword)
     {
-        var list = await 得意先Repository.SearchAsync(keyword);
-        return list.Select(c => new SuggestTextBox.SuggestModel
-        {
-            Code = c.得意先ID.ToString(),
-            Name = c.得意先名
-        }).ToList();
+        // DBアクセスしない
+        // 初回に全件読み込んだ結果を絞り込むだけ
+        var list = 得意先全件
+            .Where(c => c.得意先名.Contains(keyword))
+            .OrderBy(c => c.得意先名)
+            .Take(10)
+            .Select(c => new SuggestTextBox.SuggestModel
+            {
+                Code = c.得意先ID.ToString(),
+                Name = c.得意先名
+            })
+            .ToList();
+
+        return Task.FromResult(list);
     }
 
     // 得意先サジェスト選択
@@ -204,27 +220,31 @@ else
     // ==================================================
     // 商品コードの入力
     // ==================================================
-    private async Task On商品コード入力(受注明細Model m, string? 商品コード)
+    private async Task<List<SuggestTextBox.SuggestModel>> Fetch商品サジェスト(string keyword)
     {
-        m.商品コード = 商品コード ?? "";
-
-        if (string.IsNullOrWhiteSpace(商品コード))
+        var list = await 商品Repository.SearchAsync(keyword);
+        return list.Select(p => new SuggestTextBox.SuggestModel
         {
-            m.商品名 = "";
-            m.単価 = 0;
-            再計算合計金額();
-            return;
-        }
-        var p = await 商品Repository.GetByCodeAsync(商品コード);
-        if (p is not null)
+            Code = p.商品コード,
+            Name = p.商品コード + " " + p.商品名, // 両方表示
+            AddInfo = p
+        }).ToList();
+    }
+    
+    private void On商品Select(SuggestTextBox.SuggestModel? item, 受注明細Model 明細)
+    {
+        if (item is null)
         {
-            m.商品名 = p.商品名;
-            m.単価 = p.単価;
+            明細.商品コード = "";
+            明細.商品名 = "";
+            明細.単価 = 0;
         }
         else
         {
-            m.商品名 = "";
-            m.単価 = 0;
+            var p = item.AddInfo as 商品Model;
+            明細.商品コード = item.Code;
+            明細.商品名 = p?.商品名 ?? "";
+            明細.単価 = p?.単価 ?? 0;
         }
         再計算合計金額();
     }

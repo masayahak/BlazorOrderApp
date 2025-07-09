@@ -6,7 +6,8 @@ namespace BlazorOrderApp.Repositories
 {
     public interface I商品Repository
     {
-        Task<IEnumerable<商品Model>> GetAllAsync();
+        Task<List<商品Model>> GetAllAsync();
+        Task<List<商品Model>> SearchAsync(string keyword);
         Task<商品Model?> GetByCodeAsync(string 商品コード);
         Task AddAsync(商品Model model);
         Task UpdateAsync(商品Model model);
@@ -22,8 +23,8 @@ namespace BlazorOrderApp.Repositories
             _connectionString = config.GetConnectionString("DefaultConnection")!;
         }
 
-        // 検索
-        public async Task<IEnumerable<商品Model>> GetAllAsync()
+        // 全件Select
+        public async Task<List<商品Model>> GetAllAsync()
         {
             using var conn = new SqlConnection(_connectionString);
 
@@ -34,7 +35,24 @@ namespace BlazorOrderApp.Repositories
             ";
             var list = await conn.QueryAsync<商品Model>(dataSql);
 
-            return list;
+            return list.ToList();
+        }
+
+        // 検索
+        public async Task<List<商品Model>> SearchAsync(string keyword)
+        {
+            using var conn = new SqlConnection(_connectionString);
+
+            var dataSql = @"
+                select top 10
+                        商品コード, 商品名, 単価, 備考
+                  from 商品
+                where ( 商品コード like @keyword or 商品名 like @keyword)
+                 order by 商品コード
+            ";
+            var list = await conn.QueryAsync<商品Model>(dataSql, new { keyword = $"%{keyword}%" });
+
+            return list.ToList();
         }
 
         // 単一 Select
