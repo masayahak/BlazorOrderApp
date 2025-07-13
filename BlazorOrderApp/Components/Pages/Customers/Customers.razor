@@ -1,7 +1,6 @@
 ﻿@page "/customers"
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
-@inject I得意先Repository 得意先Repository
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize]
 
@@ -27,13 +26,9 @@
         </tr>
     </thead>
     <tbody>
-        @if (表示一覧 is null)
+        @if (!表示一覧.Any())
         {
-            <tr><td colspan="4">データ取得中...</td></tr>
-        }
-        else if (!表示一覧.Any())
-        {
-            <tr><td colspan="4">該当する得意先がありません。</td></tr>
+            <tr><td colspan="3">該当する得意先がありません。</td></tr>
         }
         else
         {
@@ -55,6 +50,8 @@
 @code {
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
+    [Inject]
+    public I得意先Repository 得意先Repository { get; set; } = default!;
 
     [Parameter, SupplyParameterFromQuery]
     public string keyword { get; set; } = string.Empty;

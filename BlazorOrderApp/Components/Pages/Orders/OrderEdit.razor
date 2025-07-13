@@ -5,11 +5,6 @@
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
 @using static BlazorOrderApp.Components.Commons.SuggestTextBox
-
-@inject I受注Repository 受注Repository
-@inject I得意先Repository 得意先Repository
-@inject I商品Repository 商品Repository
-@inject NavigationManager Navigation
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize]
 
@@ -30,12 +25,13 @@ else
 
         <div class="row mb-2">
             <div class="col-md-2">
-                <label class="form-label">受注日</label>
-                <InputDate @bind-Value="受注.受注日" class="form-control" />
+                <label for="受注日" class="form-label">受注日</label>
+                <InputDate id="受注日" @bind-Value="受注.受注日" class="form-control" />
             </div>
             <div class="col-md-4 position-relative">
-                <label class="form-label">得意先名</label>
-                <SuggestTextBox InputClass="form-control" 
+                <label for="得意先名" class="form-label">得意先名</label>
+                <SuggestTextBox Id="得意先名"
+                                InputClass="form-control" 
                                 Placeholder="(得意先名で検索)"
                                 Value="@得意先名入力"
                                 StartSearchChars=2
@@ -48,9 +44,8 @@ else
             </div>
 
             <div class="mb-2 col-md-2">
-                <label class="form-label text-center w-100">合計金額</label>
-                <!-- 編集不可な値は普通のinputでOK -->
-                <input type="text" class="form-control text-end bg-light border readonly-field"
+                <label for="合計金額" class="form-label text-center w-100">合計金額</label>
+                <input id="合計金額" type="text" class="form-control text-end bg-light border readonly-field"
                        value="@受注.合計金額.ToString("¥#,##0")" readonly />
             </div>
         </div>
@@ -142,6 +137,15 @@ else
 }
 
 @code {
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+    [Inject]
+    public I受注Repository 受注Repository { get; set; } = default!;
+    [Inject]
+    public I得意先Repository 得意先Repository { get; set; } = default!;
+    [Inject]
+    public I商品Repository 商品Repository { get; set; } = default!;
+
     [Parameter, SupplyParameterFromQuery]
     public int? 受注ID { get; set; }
     [Parameter, SupplyParameterFromQuery]
@@ -220,6 +224,8 @@ else
         if (item is null) return;
 
         var p = item.AddInfo as 得意先Model;
+        if (p is null) return;
+
         受注.得意先ID = p.得意先ID;
         受注.得意先名 = p.得意先名;
         得意先名入力 = p.得意先名;
@@ -239,18 +245,22 @@ else
             AddInfo = p
         }).ToList();
     }
-    
+
     private void On商品Select(SuggestTextBox.SuggestModel? item, 受注明細Model 明細)
     {
+        明細.商品コード = "";
+        明細.商品名 = "";
+        明細.単価 = 0;
+
         if (item is null)
         {
-            明細.商品コード = "";
-            明細.商品名 = "";
-            明細.単価 = 0;
+            return;
         }
         else
         {
             var p = item.AddInfo as 商品Model;
+            if (p is null) return;
+
             明細.商品コード = p.商品コード;
             明細.商品名 = p?.商品名 ?? "";
             明細.単価 = p?.単価 ?? 0;

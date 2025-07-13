@@ -1,7 +1,6 @@
 ﻿@page "/products"
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
-@inject I商品Repository 商品Repository
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize]
 
@@ -28,11 +27,7 @@
         </tr>
     </thead>
     <tbody>
-        @if (表示一覧 is null)
-        {
-            <tr><td colspan="4">データ取得中...</td></tr>
-        }
-        else if (!表示一覧.Any())
+        @if (!表示一覧.Any())
         {
             <tr><td colspan="4">該当する商品がありません。</td></tr>
         }
@@ -57,6 +52,8 @@
 @code {
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
+    [Inject]
+    public I商品Repository 商品Repository { get; set; } = default!;
 
     [Parameter, SupplyParameterFromQuery]
     public string keyword { get; set; } = string.Empty;

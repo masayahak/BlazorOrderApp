@@ -3,8 +3,6 @@
 
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
-@inject I商品Repository 商品Repository
-@inject NavigationManager Navigation
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize]
 
@@ -17,30 +15,30 @@
 
     <div class="row mb-2">
         <div class="mb-3 d-flex align-items-center">
-            <label class="form-label mb-0 me-2" style="width: 80px;">商品コード</label>
+            <label for="商品コード" class="form-label mb-0 me-2" style="width: 80px;">商品コード</label>
             @if (isEdit)
             {
-                <InputText class="form-control readonly-field" style="width:160px;" @bind-Value="model.商品コード" Disabled />
+                <InputText id="商品コード" class="form-control readonly-field" style="width:160px;" @bind-Value="model.商品コード" Disabled />
             }
             else
             {
-                <InputText class="form-control" style="width:160px;" @bind-Value="model.商品コード" autocomplete="off" />
+                <InputText id="商品コード" class="form-control" style="width:160px;" @bind-Value="model.商品コード" autocomplete="off" />
                 <ValidationMessage For="() => model.商品コード" />
             }
         </div>
         <div class="mb-3 d-flex align-items-center">
-            <label class="form-label mb-0 me-2" style="width: 80px;">商品名</label>
-            <InputText class="form-control" style="width:320px;" @bind-Value="model.商品名" autocomplete="off" />
+            <label for="商品名" class="form-label mb-0 me-2" style="width: 80px;">商品名</label>
+            <InputText id="商品名" class="form-control" style="width:320px;" @bind-Value="model.商品名" autocomplete="off" />
             <ValidationMessage For="() => model.商品名" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
-            <label class="form-label mb-0 me-2" style="width: 80px;">単価</label>
-            <InputNumber class="form-control text-end" style="width:160px;" @bind-Value="model.単価" step="1" min="0" autocomplete="off" />
+            <label for="単価" class="form-label mb-0 me-2" style="width: 80px;">単価</label>
+            <InputNumber id="単価" class="form-control text-end" style="width:160px;" @bind-Value="model.単価" step="1" min="0" autocomplete="off" />
             <ValidationMessage For="() => model.単価" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
-            <label class="form-label mb-0 me-2" style="width: 80px;">備考</label>
-            <InputText class="form-control" @bind-Value="model.備考" autocomplete="off" />
+            <label for="備考" class="form-label mb-0 me-2" style="width: 80px;">備考</label>
+            <InputText id="備考" class="form-control" @bind-Value="model.備考" autocomplete="off" />
         </div>
     </div>
 
@@ -79,6 +77,11 @@
 }
 
 @code {
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+    [Inject]
+    public I商品Repository 商品Repository { get; set; } = default!;
+
     [Parameter, SupplyParameterFromQuery]
     public string? 商品コード { get; set; }
     [Parameter, SupplyParameterFromQuery]

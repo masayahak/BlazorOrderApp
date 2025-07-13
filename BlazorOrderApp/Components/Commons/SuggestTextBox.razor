@@ -1,7 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
 
 <div class="position-relative w-100">
-    <InputText @bind-Value="_input"
+    <InputText id="@Id"
+               @bind-Value="_input"
                class="@InputClass"
                placeholder="@Placeholder"
                @oninput="OnInput"
@@ -19,6 +20,7 @@
 </div>
 
 @code {
+    [Parameter] public string? Id { get; set; }
     [Parameter] public string Value { get; set; } = "";
     [Parameter] public string Placeholder { get; set; } = "";
     [Parameter] public string InputClass { get; set; } = "form-control";
