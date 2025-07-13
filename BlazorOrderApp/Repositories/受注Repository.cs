@@ -7,6 +7,7 @@ namespace BlazorOrderApp.Repositories
     public interface I受注Repository
     {
         Task<IEnumerable<受注Model>> GetAllAsync();
+        Task<IEnumerable<受注Model>> SearchAsync(DateTime startDate, DateTime endDate, string keyword);
         Task<受注Model?> GetByIdAsync(int? 受注ID);
         Task AddAsync(受注Model model);
         Task UpdateAsync(受注Model model);
@@ -22,7 +23,7 @@ namespace BlazorOrderApp.Repositories
             _connectionString = config.GetConnectionString("DefaultConnection")!;
         }
 
-        // 検索
+        // 全件
         public async Task<IEnumerable<受注Model>> GetAllAsync()
         {
             using var conn = new SqlConnection(_connectionString);
@@ -34,6 +35,39 @@ namespace BlazorOrderApp.Repositories
             ";
             var list = await conn.QueryAsync<受注Model>(dataSql);
 
+            return list;
+        }
+
+        // 検索
+        public async Task<IEnumerable<受注Model>> SearchAsync(DateTime startDate, DateTime endDate, string keyword)
+        {
+            using var conn = new SqlConnection(_connectionString);
+
+            var dataSql = @"
+                 with sub as (
+                    select o.受注ID, o.受注日, o.得意先ID, o.得意先名, o.合計金額, o.備考
+                      from 受注 o
+                     where o.受注日 between @startDate and @endDate
+                )
+                select *
+                from sub t
+                where
+                      @key = ''
+                   or t.得意先名 like @key
+                   or exists (
+                         select 1 from 受注明細 d
+                          where d.受注ID = t.受注ID
+                            and (d.商品コード like @key or d.商品名 like @key)
+                     )
+                order by t.受注日, t.得意先名, t.受注ID
+           ";
+            var param = new
+            {
+                startDate,
+                endDate,
+                key = "%" + keyword + "%"
+            };
+            var list = await conn.QueryAsync<受注Model>(dataSql, param);
             return list;
         }
 
