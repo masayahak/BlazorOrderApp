@@ -7,7 +7,7 @@ namespace BlazorOrderApp.Models
         public const int MAX_受注明細_COUNT = 10;
     }
 
-    public class 受注Model
+    public class 受注Model : IValidatableObject
     {
         public int 受注ID { get; set; }
         public DateTime 受注日 { get; set; }
@@ -20,6 +20,22 @@ namespace BlazorOrderApp.Models
         public string? 備考 { get; set; }
 
         public List<受注明細Model> 明細一覧 { get; set; } = new();
+
+        // Blazor では親モデルしかValidationされない。親に子供のValidationを追加
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            foreach (var (明細, i) in 明細一覧.Select((v, idx) => (v, idx + 1)))
+            {
+                if (string.IsNullOrWhiteSpace(明細.商品コード) || string.IsNullOrWhiteSpace(明細.商品名) || 明細.単価 <= 0)
+                    yield return new ValidationResult($"明細 {i} の商品コードを入力してください", new[] { $"明細一覧[{i - 1}].商品コード" });
+
+                if (明細.数量 == 0)
+                    yield return new ValidationResult($"明細 {i} の数量を入力してください", new[] { $"明細一覧[{i - 1}].数量" });
+
+                if (明細.数量 < 0)
+                    yield return new ValidationResult($"明細 {i} の数量は1以上を入力してください", new[] { $"明細一覧[{i - 1}].数量" });
+            }
+        }
     }
 
     public class 受注明細Model
@@ -33,7 +49,7 @@ namespace BlazorOrderApp.Models
         [Required]
         public decimal 単価 { get; set; }
         [Required]
-        [Range(0, int.MaxValue, ErrorMessage = "数量は0以上を入力してください。")]
+        [Range(1, int.MaxValue, ErrorMessage = "数量は1以上を入力してください。")]
         public int 数量 { get; set; }
 
         public decimal 金額 => 単価 * 数量;

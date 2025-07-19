@@ -50,7 +50,7 @@ namespace BlazorOrderApp.Services
         {
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
-                throw new InvalidOperationException("HttpContext is not available.");
+                return;
 
             await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         }

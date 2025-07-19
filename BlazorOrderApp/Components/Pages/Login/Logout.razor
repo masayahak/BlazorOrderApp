@@ -8,7 +8,6 @@
     protected override async Task OnInitializedAsync()
     {
         await AuthService.LogoutAsync();
+        NavigationManager.NavigateTo("/login?expired=0");
     }
 }
-
-<meta http-equiv="refresh" content="0;url=/login" />

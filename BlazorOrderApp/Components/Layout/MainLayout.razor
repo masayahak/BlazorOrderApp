@@ -6,17 +6,31 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
+        <div class="top-row px-4 d-flex align-items-center" style="min-height: 48px;">
             <AuthorizeView>
                 <Authorized>
-                    @context.User.Identity!.Name
+                    <span class="bi-user-circle me-2"></span>
+                    <span>ようこそ <strong>@context.User.Identity!.Name</strong> さん</span>
                 </Authorized>
+                <NotAuthorized>
+                    <span class="text-secondary">ログインしていません</span>
+                </NotAuthorized>
             </AuthorizeView>
         </div>
 
         <article class="content px-4">
-            @Body
+            <ErrorBoundary>
+                <!-- 正常系 -->
+                <ChildContent>
+                    @Body
+                </ChildContent>
+                <!-- エラー系 -->
+                <ErrorContent>
+                    <ErrorDisplay />
+                </ErrorContent>
+            </ErrorBoundary>
         </article>
+
     </main>
 </div>
 

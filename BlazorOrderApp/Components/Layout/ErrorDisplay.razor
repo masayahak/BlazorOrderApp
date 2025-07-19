@@ -1,0 +1,22 @@
+﻿@inject NavigationManager Nav
+@code {
+    [Parameter] public Exception? Exception { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // 認証切れの場合はログインページへ
+        if (Exception is UnauthorizedAccessException)
+        {
+            Nav.NavigateTo("/login?expired=1", true); // trueで強制リロード
+        }
+    }
+}
+
+@if (Exception is UnauthorizedAccessException)
+{
+    <div>認証の有効期限が切れました。再度ログインしてください。</div>
+}
+else
+{
+    <div>予期せぬエラーが発生しました。</div>
+}

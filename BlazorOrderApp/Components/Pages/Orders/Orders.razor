@@ -9,16 +9,16 @@
 @* ------------ 絞り込み条件 ------------ *@
 <div class="row g-2 mb-4">
     <div class="d-flex align-items-end mb-3">
-        <div class="me-3">
+        <div class="me-3" style="width: 150px;">
             <label for="start-date" class="form-label">受注期間</label>
             <InputText id="start-date" @bind-Value="StartDate" class="form-control" autocomplete="off" />
         </div>
         <div class="me-3 align-self-end">～</div>
-        <div class="me-4">
+        <div class="me-4" style="width: 150px;">
             <label for="end-date" class="form-label invisible">終了日</label>
             <InputText id="end-date" @bind-Value="EndDate" class="form-control" autocomplete="off" />
         </div>
-        <div>
+        <div style="width: 300px;">
             <label for="keyword" class="form-label">得意先名・商品名</label>
             <InputText id="keyword" @bind-Value="Keyword" class="form-control" autocomplete="off" />
         </div>
@@ -64,10 +64,8 @@
 </table>
 
 @code {
-    [Inject]
-    private NavigationManager Navigation { get; set; } = default!;
-    [Inject]
-    public I受注Repository 受注Repository { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [Inject] public I受注Repository 受注Repository { get; set; } = default!;
 
     [Parameter, SupplyParameterFromQuery]
     public string StartDate { get; set; } = string.Empty;

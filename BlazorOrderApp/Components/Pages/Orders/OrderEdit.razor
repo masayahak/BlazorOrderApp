@@ -10,53 +10,54 @@
 
 <h3>受注 @((IsEdit ? "修正" : "追加"))</h3>
 
-@if (受注 is null)
+@if (受注Model is null)
 {
     <div>データ取得中...</div>
 }
 else
 {
-    <EditForm Model="受注" OnValidSubmit="OnValidSubmit">
+    <EditForm Model="受注Model" OnValidSubmit="OnValidSubmit">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
         <input type="hidden" value="@IsEdit" />
-        <input type="hidden" value="@受注.受注ID" />
+        <input type="hidden" value="@受注Model.受注ID" />
 
+        @* -------------- 受注の基本情報入力 -------------- *@
         <div class="row mb-2">
             <div class="col-md-2">
                 <label for="受注日" class="form-label">受注日</label>
-                <InputDate id="受注日" @bind-Value="受注.受注日" class="form-control" />
+                <InputDate id="受注日" @bind-Value="受注Model.受注日" class="form-control" />
             </div>
             <div class="col-md-4 position-relative">
                 <label for="得意先名" class="form-label">得意先名</label>
-                <SuggestTextBox Id="得意先名"
-                                InputClass="form-control" 
-                                Placeholder="(得意先名で検索)"
-                                Value="@得意先名入力"
-                                StartSearchChars=2
-                                FetchSuggestions="Fetch得意先サジェスト"
-                                OnSelect="On得意先Select"
-                                DisplayValueSelector="@(item => item.Name)" 
-                                />
-                <input type="hidden" value="@受注.得意先ID" />
-                <input type="hidden" value="@受注.得意先名" />
+                <SuggestTextBox
+                    Id="得意先名"
+                    Value="@受注Model.得意先名"
+                    OnValueChanged="val => {
+                        受注Model.得意先名 = val;
+                        if (string.IsNullOrEmpty(val)) 受注Model.得意先ID = 0;
+                    }"
+                    StartSearchChars=2
+                    FetchSuggestions="Fetch得意先サジェスト"
+                    OnSelect="On得意先Select"
+                    DisplayValueSelector="@(item => item.Name)" />
+                <input type="hidden" value="@受注Model.得意先ID" />
             </div>
-
             <div class="mb-2 col-md-2">
                 <label for="合計金額" class="form-label text-center w-100">合計金額</label>
                 <input id="合計金額" type="text" class="form-control text-end bg-light border readonly-field"
-                       value="@受注.合計金額.ToString("¥#,##0")" readonly />
+                       value="@受注Model.合計金額.ToString("¥#,##0")" readonly />
             </div>
         </div>
 
+        @* -------------- 受注明細の入力 -------------- *@
         <hr class="my-4" />
         <div class="d-flex align-items-center mb-2">
             <h5 class="fw-bold text-primary mb-0 me-3">▶ 明細一覧</h5>
             <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="On明細追加">＋行を追加</button>
         </div>
         <hr class="my-2" />
-
         <table class="table table-sm">
             <thead class="custom-header">
                 <tr>
@@ -68,14 +69,15 @@ else
                 </tr>
             </thead>
             <tbody>
-                @for (int i = 0; i < 受注.明細一覧.Count; i++)
+                @for (int i = 0; i < 受注Model.明細一覧.Count; i++)
                 {
-                    var m = 受注.明細一覧[i];
+                    var m = 受注Model.明細一覧[i];
                     <tr>
                         <td>
                             <SuggestTextBox InputClass="form-control"
                                             Placeholder="(商品コード/名で検索)"
                                             Value="@m.商品コード"
+                                            OnValueChanged="val => m.商品コード = val"
                                             StartSearchChars="2"
                                             FetchSuggestions="Fetch商品サジェスト"
                                             OnSelect="@(item => On商品Select(item, m))"
@@ -105,7 +107,7 @@ else
 
         <div class="mb-2">
             <label class="form-label">備考</label>
-            <InputTextArea @bind-Value="受注.備考" class="form-control" />
+            <InputTextArea @bind-Value="受注Model.備考" class="form-control" />
         </div>
 
         <div class="mt-3 d-flex justify-content-between">
@@ -155,10 +157,12 @@ else
     [Parameter, SupplyParameterFromQuery]
     public string? Keyword { get; set; }
 
-    private 受注Model 受注 = new();
+    private 受注Model 受注Model = new();
 
     private bool showDeleteConfirm = false;
-    private bool IsEdit => (受注?.受注ID ?? 0) > 0;
+
+    // DB検索した結果、存在しているなら編集モード
+    private bool IsEdit => (受注Model?.受注ID ?? 0) > 0;
 
     // ==================================================
     // コンストラクタ
@@ -171,19 +175,17 @@ else
             var item = await 受注Repository.GetByIdAsync(受注ID.Value);
             if (item != null)
             {
-                受注 = item;
+                受注Model = item;
             }
         }
         // ----- 登録時 -----
-        if (受注.受注ID== 0 && (受注.明細一覧 == null || 受注.明細一覧.Count == 0))
+        if (受注Model.受注ID== 0 && (受注Model.明細一覧 == null || 受注Model.明細一覧.Count == 0))
         {
-            受注.受注日 = DateTime.Today;
+            受注Model.受注日 = DateTime.Today;
 
             // 明細を1行初期表示
             On明細追加();
         }
-
-        得意先名入力 = 受注?.得意先名 ?? "";
 
         // 得意先は最初に全件読み込み
         得意先全件 = await 得意先Repository.GetAllAsync();
@@ -193,15 +195,18 @@ else
 
     // ==================================================
     // 得意先の入力
+    // --------------------------------------------------
+    // ・得意先は対象データが少ない場合の事例
+    // ・頻繁にDBアクセスさせない。最初に全件読み込みレスポンスに全件含める。
+    // ・条件指定でレスポンス済みのデータから絞り込み
     // ==================================================
-    private string 得意先名入力 = "";
     private List<得意先Model> 得意先全件 = new();
 
     // サジェスト取得ロジック
     private Task<List<SuggestTextBox.SuggestModel>> Fetch得意先サジェスト(string keyword)
     {
         // DBアクセスしない
-        // 初回に全件読み込んだ結果を絞り込むだけ
+        // 全件読み込んだ結果を絞り込むだけ
         var list = 得意先全件
             .Where(c => c.得意先名.Contains(keyword))
             .OrderBy(c => c.得意先名)
@@ -221,18 +226,25 @@ else
     // 得意先サジェスト選択
     private void On得意先Select(SuggestTextBox.SuggestModel? item)
     {
-        if (item is null) return;
-
+        if (item is null)
+        {
+            受注Model.得意先ID = 0;
+            受注Model.得意先名 = "";
+            return;
+        }
         var p = item.AddInfo as 得意先Model;
         if (p is null) return;
-
-        受注.得意先ID = p.得意先ID;
-        受注.得意先名 = p.得意先名;
-        得意先名入力 = p.得意先名;
+        受注Model.得意先ID = p.得意先ID;
+        受注Model.得意先名 = p.得意先名;
     }
 
     // ==================================================
     // 商品コードの入力
+    // --------------------------------------------------
+    // ・商品は対象データが多い場合の事例
+    // ・最初に全件読み込むにはデータが多すぎる
+    // ・やむを得ず、条件指定後に都度対象データを取りに行く。
+    // （SignalR通信が発生する）
     // ==================================================
     private async Task<List<SuggestTextBox.SuggestModel>> Fetch商品サジェスト(string keyword)
     {
@@ -268,6 +280,9 @@ else
         再計算合計金額();
     }
 
+    // ==================================================
+    // 金額の再計算関連
+    // ==================================================
     private void On数量変更(受注明細Model m, object? value)
     {
         if (value is int intValue)
@@ -276,47 +291,56 @@ else
             m.数量 = 0; // or nullでもOK
         else
             m.数量 = Convert.ToInt32(value);
-            
+
         再計算合計金額();
     }
 
     private void 再計算合計金額()
     {
-        if (受注 == null || 受注.明細一覧 == null) return;
-        受注.合計金額 = 受注.明細一覧.Sum(x => x.単価 * x.数量);
+        if (受注Model == null || 受注Model.明細一覧 == null) return;
+        受注Model.合計金額 = 受注Model.明細一覧.Sum(x => x.単価 * x.数量);
     }
 
+    // ==================================================
+    // 明細の追加／削除
+    // ==================================================
     private void On明細追加()
     {
-        if (受注?.明細一覧 == null) return;
-        if (受注.明細一覧.Count < 10)
-            受注.明細一覧.Add(new 受注明細Model());
+        if (受注Model?.明細一覧 == null) return;
+        if (受注Model.明細一覧.Count < 10)
+        {
+            受注Model.明細一覧.Add(new 受注明細Model());
+            StateHasChanged();
+        }
     }
 
     private void On明細削除(受注明細Model m)
     {
-        if (受注?.明細一覧 == null) return;
-        受注.明細一覧.Remove(m);
+        if (受注Model?.明細一覧 == null) return;
+        受注Model.明細一覧.Remove(m);
         再計算合計金額();
     }
 
     private void ShowDeleteConfirm() => showDeleteConfirm = true;
     private void HideDeleteConfirm() => showDeleteConfirm = false;
 
+    // ==================================================
+    // データの登録・修正・削除
+    // ==================================================
     private async Task OnValidSubmit()
     {
         if (IsEdit)
-            await 受注Repository.UpdateAsync(受注);
+            await 受注Repository.UpdateAsync(受注Model);
         else
-            await 受注Repository.AddAsync(受注);
+            await 受注Repository.AddAsync(受注Model);
 
         NavToIndex();
     }
 
     private async Task OnDelete()
     {
-        if (受注 == null) return;
-        await 受注Repository.DeleteAsync(受注.受注ID);
+        if (受注Model == null) return;
+        await 受注Repository.DeleteAsync(受注Model.受注ID);
         NavToIndex();
     }
 
