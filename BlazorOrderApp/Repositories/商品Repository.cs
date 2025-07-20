@@ -1,5 +1,4 @@
 ﻿using BlazorOrderApp.Models;
-using BlazorOrderApp.Repositories.Common;
 using Dapper;
 using Microsoft.Data.SqlClient;
 
@@ -15,12 +14,11 @@ namespace BlazorOrderApp.Repositories
         Task DeleteAsync(string 商品コード);
     }
 
-    public class 商品Repository : RepositoryBase, I商品Repository
+    public class 商品Repository : I商品Repository
     {
         private readonly string _connectionString;
 
-        public 商品Repository(IHttpContextAccessor contextAccessor, IConfiguration config)
-            : base(contextAccessor)
+        public 商品Repository(IConfiguration config)
         {
             _connectionString = config.GetConnectionString("DefaultConnection")!;
         }
@@ -28,7 +26,6 @@ namespace BlazorOrderApp.Repositories
         // 全件Select
         public async Task<List<商品Model>> GetAllAsync()
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
 
             var dataSql = @"
@@ -44,7 +41,6 @@ namespace BlazorOrderApp.Repositories
         // 検索
         public async Task<List<商品Model>> SearchAsync(string keyword)
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
 
             var dataSql = @"
@@ -62,7 +58,6 @@ namespace BlazorOrderApp.Repositories
         // 単一 Select
         public async Task<商品Model?> GetByCodeAsync(string 商品コード)
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
 
             var sql = @"
@@ -78,7 +73,6 @@ namespace BlazorOrderApp.Repositories
         // Insert
         public async Task AddAsync(商品Model model)
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
@@ -102,7 +96,6 @@ namespace BlazorOrderApp.Repositories
         // Update
         public async Task UpdateAsync(商品Model model)
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
@@ -129,7 +122,6 @@ namespace BlazorOrderApp.Repositories
         // Delete
         public async Task DeleteAsync(string 商品コード)
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();

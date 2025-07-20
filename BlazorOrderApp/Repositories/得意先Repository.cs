@@ -1,5 +1,4 @@
 ﻿using BlazorOrderApp.Models;
-using BlazorOrderApp.Repositories.Common;
 using Dapper;
 using Microsoft.Data.SqlClient;
 
@@ -14,12 +13,11 @@ namespace BlazorOrderApp.Repositories
         Task DeleteAsync(int 得意先ID);
     }
 
-    public class 得意先Repository : RepositoryBase, I得意先Repository
+    public class 得意先Repository : I得意先Repository
     {
         private readonly string _connectionString;
 
-        public 得意先Repository(IHttpContextAccessor contextAccessor, IConfiguration config)
-            : base(contextAccessor)
+        public 得意先Repository(IConfiguration config)
         {
             _connectionString = config.GetConnectionString("DefaultConnection")!;
         }
@@ -27,7 +25,6 @@ namespace BlazorOrderApp.Repositories
         // 全件Select
         public async Task<List<得意先Model>> GetAllAsync()
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
 
             var dataSql = @"
@@ -42,7 +39,6 @@ namespace BlazorOrderApp.Repositories
 
         public async Task<得意先Model?> GetByIdAsync(string? str得意先ID)
         {
-            CheckAuth();
             if (!int.TryParse(str得意先ID, out int id))
             {
                 id = -1;
@@ -63,7 +59,6 @@ namespace BlazorOrderApp.Repositories
         // Insert
         public async Task AddAsync(得意先Model model)
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
@@ -87,7 +82,6 @@ namespace BlazorOrderApp.Repositories
         // Update
         public async Task UpdateAsync(得意先Model model)
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
@@ -114,7 +108,6 @@ namespace BlazorOrderApp.Repositories
         // Delete
         public async Task DeleteAsync(int 得意先ID)
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();

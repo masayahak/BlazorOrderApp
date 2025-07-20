@@ -1,5 +1,4 @@
 ﻿using BlazorOrderApp.Models;
-using BlazorOrderApp.Repositories.Common;
 using Dapper;
 using Microsoft.Data.SqlClient;
 
@@ -15,12 +14,11 @@ namespace BlazorOrderApp.Repositories
         Task DeleteAsync(int 受注ID);
     }
 
-    public class 受注Repository : RepositoryBase, I受注Repository
+    public class 受注Repository : I受注Repository
     {
         private readonly string _connectionString;
 
-        public 受注Repository(IHttpContextAccessor contextAccessor, IConfiguration config)
-            : base(contextAccessor)
+        public 受注Repository(IConfiguration config)
         {
             _connectionString = config.GetConnectionString("DefaultConnection")!;
         }
@@ -28,7 +26,6 @@ namespace BlazorOrderApp.Repositories
         // 全件
         public async Task<IEnumerable<受注Model>> GetAllAsync()
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
 
             var dataSql = @"
@@ -44,7 +41,6 @@ namespace BlazorOrderApp.Repositories
         // 検索
         public async Task<IEnumerable<受注Model>> SearchAsync(DateTime startDate, DateTime endDate, string keyword)
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
 
             var dataSql = @"
@@ -78,7 +74,6 @@ namespace BlazorOrderApp.Repositories
         // 単一 Select
         public async Task<受注Model?> GetByIdAsync(int? 受注ID)
         {
-            CheckAuth();
             if (受注ID  == null)  return null;
 
             using var conn = new SqlConnection(_connectionString);
@@ -121,7 +116,6 @@ namespace BlazorOrderApp.Repositories
         // Insert
         public async Task AddAsync(受注Model model)
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
             conn.Open();
             using var tran = conn.BeginTransaction();
@@ -162,7 +156,6 @@ namespace BlazorOrderApp.Repositories
         // Update
         public async Task UpdateAsync(受注Model model)
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
             conn.Open();
             using var tran = conn.BeginTransaction();
@@ -204,7 +197,6 @@ namespace BlazorOrderApp.Repositories
         // Delete
         public async Task DeleteAsync(int 受注ID)
         {
-            CheckAuth();
             using var conn = new SqlConnection(_connectionString);
             conn.Open();
             using var tran = conn.BeginTransaction();

@@ -19,7 +19,7 @@ builder.Services
     .AddCookie(options =>
     {
         // 20分で自動的にログアウト
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(1);
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
         // アクセスごとに延長
         options.SlidingExpiration = true; 
 
@@ -27,8 +27,8 @@ builder.Services
         options.Events.OnRedirectToLogin = context =>
         {
             // 直接アクセス判定（Refererが無い、または空の場合は直接アクセスとみなす）
-            var hasReferer = context.Request.Headers.ContainsKey("Referer")
-                && !string.IsNullOrWhiteSpace(context.Request.Headers["Referer"]);
+            var referer = context.Request.Headers.Referer;
+            var hasReferer = !string.IsNullOrWhiteSpace(referer);
 
             // クエリ文字列にexpiredが無い、かつ直接アクセスではないリダイレクトは全てタイムアウト扱い
             var redirectUri = context.RedirectUri;
@@ -36,7 +36,7 @@ builder.Services
             {
                 var uri = new UriBuilder(redirectUri);
                 var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-                query["expired"] = hasReferer ? "1" : "0"; // 直接なら0、それ以外（遷移）は1
+                query["expired"] = hasReferer ? "1" : "0";
                 uri.Query = query.ToString();
                 context.Response.Redirect(uri.ToString());
             }

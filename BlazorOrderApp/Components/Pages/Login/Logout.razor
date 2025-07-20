@@ -8,6 +8,8 @@
     protected override async Task OnInitializedAsync()
     {
         await AuthService.LogoutAsync();
-        NavigationManager.NavigateTo("/login?expired=0");
     }
 }
+
+@* Blazorで最も安全にログアウトと画面遷移を両立させるために必要 *@
+<meta http-equiv="refresh" content="0;url=/login" />

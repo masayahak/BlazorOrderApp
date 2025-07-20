@@ -18,11 +18,9 @@
 <div class="d-flex justify-content-center" style="margin-top: 120px;">
     <div class="card shadow-sm" style="width: 360px;">
         <div class="card-body">
-            <h4 class="card-title text-center mb-4">ログイン</h4>
-            <div class="mb-2 text-muted small">
-                <div>管理者権限でログイン <span class="fw-bold">admin / admin</span></div>
-                <div>ユーザー権限でログイン <span class="fw-bold">test / test</span></div>
-            </div>
+            <span class="bi-user-circle me-3" style="font-size:2rem; vertical-align:middle;"></span>
+            <h4 class="card-title text-center d-inline align-middle" style="margin:0;">受注管理デモ ログイン</h4>
+            <div class="mb-4"></div>
             <EditForm Model="@loginUser" FormName="login-form" OnValidSubmit="LoginAsync">
                 <div class="mb-3">
                     <label for="username" class="form-label">ユーザー名</label>

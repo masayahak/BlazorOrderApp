@@ -3,7 +3,7 @@ if (location.pathname.startsWith("/login")) {
     return;
 }
 
-let timeoutMinutes = 1; // 例：1分（本番は20などに）
+let timeoutMinutes = 20; // （タイムアウト制限 20分）
 let timeoutHandle = null;
 
 // ------------------------------------------

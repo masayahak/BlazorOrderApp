@@ -4,7 +4,7 @@
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Administrator")]
 
 <h3>得意先マスタ @((isEdit ? "修正" : "追加"))</h3>
 
@@ -48,7 +48,7 @@
     </div>
 </EditForm>
 
-<!-- 簡単な削除確認ダイアログ -->
+@* ------------ 削除用確認ダイアログ ------------ *@
 @if (showDeleteConfirm)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.2);">

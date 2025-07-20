@@ -55,7 +55,7 @@ else
         <hr class="my-4" />
         <div class="d-flex align-items-center mb-2">
             <h5 class="fw-bold text-primary mb-0 me-3">▶ 明細一覧</h5>
-            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="On明細追加">＋行を追加</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="On明細追加">＋明細を追加</button>
         </div>
         <hr class="my-2" />
         <table class="table table-sm">
@@ -127,6 +127,7 @@ else
     </EditForm>
 }
 
+@* ------------ 削除用確認ダイアログ ------------ *@
 @if (showDeleteConfirm)
 {
     <div class="border rounded shadow p-4 bg-white position-fixed" style="top:30%; left:50%; transform:translate(-50%, -30%); z-index:1050;">
@@ -243,7 +244,7 @@ else
     // --------------------------------------------------
     // ・商品は対象データが多い場合の事例
     // ・最初に全件読み込むにはデータが多すぎる
-    // ・やむを得ず、条件指定後に都度対象データを取りに行く。
+    // ・条件指定後に効率的に必要な対象データのみを取りに行く。
     // （SignalR通信が発生する）
     // ==================================================
     private async Task<List<SuggestTextBox.SuggestModel>> Fetch商品サジェスト(string keyword)
