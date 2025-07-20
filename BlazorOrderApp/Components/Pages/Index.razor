@@ -4,8 +4,14 @@
 @attribute [Authorize]
 
 @code {
-    protected override void OnInitialized()
+    private bool _navigated = false;
+
+    protected override void OnAfterRender(bool firstRender)
     {
-        Navigation.NavigateTo("/orders"); // 例：ordersページへ遷移
+        if (firstRender && !_navigated)
+        {
+            _navigated = true;
+            Navigation.NavigateTo("/orders");
+        }
     }
 }

@@ -18,5 +18,9 @@
 }
 else
 {
-    <div>予期せぬエラーが発生しました。</div>
+    <div class="alert alert-danger">
+        <strong>予期しないエラーが発生しました。</strong>
+        <br />
+        @Exception?.Message
+    </div>
 }

@@ -103,12 +103,12 @@
 
     private void OnAdd()
     {
-        var url = $"orders/edit/?StartDate={StartDate}&EndDate={EndDate}&Keyword={Keyword}";
+        var url = $"orders/edit/?StartDate={Uri.EscapeDataString(StartDate)}&EndDate={Uri.EscapeDataString(EndDate)}&Keyword={Uri.EscapeDataString(Keyword)}";
         Navigation.NavigateTo(url);
     }
     private void OnEdit(int 受注ID)
     {
-        var url = $"orders/edit/{受注ID}?StartDate={StartDate}&EndDate={EndDate}&Keyword={Keyword}";
+        var url = $"orders/edit/{受注ID}?StartDate={Uri.EscapeDataString(StartDate)}&EndDate={Uri.EscapeDataString(EndDate)}&Keyword={Uri.EscapeDataString(Keyword)}";
         Navigation.NavigateTo(url);
     }
 }

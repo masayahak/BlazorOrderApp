@@ -36,9 +36,17 @@
     </div>
 </div>
 
+@* ------- ログイン失敗メッセージ ------- *@
+@if (loginError)
+{
+    <div class="alert alert-danger mt-2">ログインに失敗しました。</div>
+}
+
 @code {
     [SupplyParameterFromForm]
     private LoginModel loginUser { get; set; } = new();
+
+    private bool loginError = false;
 
     // ログインページ表示時に念の為にログアウト
     protected override async Task OnInitializedAsync()
@@ -52,6 +60,10 @@
         if (success)
         {
             NavigationManager.NavigateTo("", forceLoad: true);
+        }
+        else
+        {
+            loginError = true;
         }
     }
 }

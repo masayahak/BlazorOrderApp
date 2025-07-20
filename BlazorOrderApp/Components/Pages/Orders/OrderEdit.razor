@@ -352,7 +352,7 @@ else
 
     private void NavToIndex()
     {
-        var url = $"orders/?StartDate={StartDate}&EndDate={EndDate}&Keyword={Keyword}";
+        var url = $"orders/?StartDate={Uri.EscapeDataString(StartDate ?? "")}&EndDate={Uri.EscapeDataString(EndDate ?? "")}&Keyword={Uri.EscapeDataString(Keyword ?? "")}";
         Navigation.NavigateTo(url);
     }
 }

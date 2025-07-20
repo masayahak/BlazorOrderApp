@@ -1,6 +1,8 @@
 ﻿@page "/products/edit"
 @page "/products/edit/{商品コード}"
 
+
+@using Microsoft.Data.SqlClient
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
@@ -9,9 +11,12 @@
 <h3>商品マスタ @((isEdit ? "修正" : "追加"))</h3>
 
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mb-2">@errorMessage</div>
+}
 <EditForm Model="model" OnValidSubmit="OnSubmit">
     <DataAnnotationsValidator />
-    <ValidationSummary />
 
     <div class="row mb-2">
         <div class="mb-3 d-flex align-items-center">
@@ -108,17 +113,33 @@
         }
     }
 
+    private string? errorMessage = null;
     private async Task OnSubmit()
     {
-        if (isEdit)
+        errorMessage = null;
+        try
         {
-            await 商品Repository.UpdateAsync(model);
+            if (!isEdit)
+            {
+                await 商品Repository.AddAsync(model);
+            }
+            else
+            {
+                await 商品Repository.UpdateAsync(model);
+            }
+            OnBack();
         }
-        else
+        catch (SqlException ex) // Dapper+SQLServerの場合
         {
-            await 商品Repository.AddAsync(model);
+            if (ex.Number == 2627 /*一意制約違反*/ || ex.Number == 2601)
+            {
+                errorMessage = "同じ商品コードが既に登録されています。";
+            }
+            else
+            {
+                throw ex;
+            }
         }
-        OnBack();
     }
 
     private void OnBack()
