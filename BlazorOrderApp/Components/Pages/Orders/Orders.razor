@@ -1,7 +1,6 @@
 ﻿@page "/orders"
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
-@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize]
 
 <h2 class="mb-3">受注一覧</h2>
@@ -103,12 +102,12 @@
 
     private void OnAdd()
     {
-        var url = $"orders/edit/?StartDate={Uri.EscapeDataString(StartDate)}&EndDate={Uri.EscapeDataString(EndDate)}&Keyword={Uri.EscapeDataString(Keyword)}";
+        var url = $"orders/edit/?StartDate={Uri.EscapeDataString(StartDate ?? "")}&EndDate={Uri.EscapeDataString(EndDate ?? "")}&Keyword={Uri.EscapeDataString(Keyword ?? "")}";
         Navigation.NavigateTo(url);
     }
     private void OnEdit(int 受注ID)
     {
-        var url = $"orders/edit/{受注ID}?StartDate={Uri.EscapeDataString(StartDate)}&EndDate={Uri.EscapeDataString(EndDate)}&Keyword={Uri.EscapeDataString(Keyword)}";
+        var url = $"orders/edit/{受注ID}?StartDate={Uri.EscapeDataString(StartDate ?? "")}&EndDate={Uri.EscapeDataString(EndDate ?? "")}&Keyword={Uri.EscapeDataString(Keyword ?? "")}";
         Navigation.NavigateTo(url);
     }
 }

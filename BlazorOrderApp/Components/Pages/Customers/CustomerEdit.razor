@@ -3,7 +3,6 @@
 
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
-@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize(Roles = "Administrator")]
 
 <h3>得意先マスタ @((isEdit ? "修正" : "追加"))</h3>

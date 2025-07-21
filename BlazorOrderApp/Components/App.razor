@@ -10,15 +10,11 @@
     <link rel="stylesheet" href="@Assets["BlazorOrderApp.styles.css"]" />
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
-    <HeadOutlet />
-    @* ログインページはInteractiveServerでは困る
-    <HeadOutlet @rendermode="InteractiveServer" /> *@    
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>
-    <Routes />
-    @* ログインページはInteractiveServerでは困る
-    <Routes @rendermode="InteractiveServer" /> *@    
+    <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
     <script src="timeout.js"></script>
 </body>

@@ -1,0 +1,49 @@
+﻿@* ============================================================
+★ 重要 ★
+ログイン／ログアウトはBlazorで書いてはいけない
+Blazor全体をServerレンダーモードにしたいが、Cookie認証を利用する限り
+ログインページはServerレンダーモードにできない
+（認証はHTTP通信で行われる必要があり、SignalR通信中にはできないから）
+そのため、ログインログアウトはBlazorから切り離し、razorで実現する。
+============================================================ *@
+@page "/login"
+@using BlazorOrderApp.Pages
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+@model LoginModel
+@{
+    Layout = "_EmptyLayout";
+}
+
+@if (Model.Expired)
+{
+    <div class="alert alert-warning">
+        セッションの有効期限が切れました。再度ログインしてください。
+    </div>
+}
+
+<div class="d-flex justify-content-center" style="margin-top: 120px;">
+    <div class="card shadow-sm" style="width: 360px;">
+        <div class="card-body">
+            <span class="bi-user-circle me-3" style="font-size:2rem; vertical-align:middle;"></span>
+            <h4 class="card-title text-center d-inline align-middle" style="margin:0;">受注管理デモ ログイン</h4>
+            <div class="mb-4"></div>
+            <form method="post" autocomplete="off">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label for="username" class="form-label">ユーザー名</label>
+                    <input id="username" name="UserName" class="form-control" value="@Model.UserName" autocomplete="username" />
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">パスワード</label>
+                    <input id="password" name="Password" class="form-control" type="password" autocomplete="current-password" />
+                </div>
+                <button type="submit" class="btn btn-primary w-100">ログイン</button>
+            </form>
+            @if (Model.LoginError)
+            {
+                <div class="alert alert-danger mt-2">ログインに失敗しました。</div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,19 @@
+﻿@* _EmptyLayout.cshtml *@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="~/" />
+    <title>@ViewData["Title"] - 受注管理デモ</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/app.css" />
+    <link rel="stylesheet" href="~/BlazorOrderApp.styles.css" />
+    <link rel="icon" type="image/png" href="~/favicon.png" />
+    @RenderSection("HeadContent", false)
+</head>
+<body>
+    @RenderBody()
+    @RenderSection("Scripts", false)
+</body>
+</html>

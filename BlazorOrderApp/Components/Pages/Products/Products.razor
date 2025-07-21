@@ -1,7 +1,6 @@
 ﻿@page "/products"
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
-@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize(Roles = "Administrator")]
 
 <h3>商品マスタ一覧</h3>

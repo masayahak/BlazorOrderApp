@@ -5,7 +5,6 @@
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
 @using static BlazorOrderApp.Components.Commons.SuggestTextBox
-@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize]
 
 <h3>受注 @((IsEdit ? "修正" : "追加"))</h3>

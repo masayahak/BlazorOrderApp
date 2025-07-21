@@ -14,6 +14,9 @@ builder.Services.AddScoped<I得意先Repository, 得意先Repository>();
 builder.Services.AddScoped<I受注Repository, 受注Repository>();
 
 // ----------- Cookie認証 --------------------------------
+// ログイン／ログアウト用のRazor Pages
+builder.Services.AddRazorPages();
+
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -79,6 +82,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+
+// ログイン／ログアウト用のRazor Pages のエンドポイント追加
+// Blazorのマッピングより先に実行
+app.MapRazorPages();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

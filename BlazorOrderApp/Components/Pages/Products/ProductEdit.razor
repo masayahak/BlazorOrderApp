@@ -1,11 +1,9 @@
 ﻿@page "/products/edit"
 @page "/products/edit/{商品コード}"
 
-
 @using Microsoft.Data.SqlClient
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
-@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize(Roles = "Administrator")]
 
 <h3>商品マスタ @((isEdit ? "修正" : "追加"))</h3>

@@ -1,5 +1,4 @@
 ﻿@inherits LayoutComponentBase
-@* ここにサーバーレンダーを記述することはできない。 *@
 
 <div class="page">
     <div class="sidebar">
@@ -20,16 +19,14 @@
         </div>
 
         <article class="content px-4">
-            @* ログイン用に全体はSSRでレンダーされ、各業務ページはサーバーレンダーモード
-            レンダーモードが異なるため、ErrorBoundaryが上手く適応されない（Blazorの未解決課題） *@
             <ErrorBoundary>
                 <!-- 正常系 -->
                 <ChildContent>
                     @Body
                 </ChildContent>
                 <!-- エラー系 -->
-                <ErrorContent>
-                    <ErrorDisplay />
+                <ErrorContent Context="ex">
+                    <ErrorDisplay Exception="ex" />
                 </ErrorContent>
             </ErrorBoundary>
         </article>
