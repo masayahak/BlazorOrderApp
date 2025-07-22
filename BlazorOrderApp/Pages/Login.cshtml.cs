@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BlazorOrderApp.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using BlazorOrderApp.Services;
 
 namespace BlazorOrderApp.Pages
 {

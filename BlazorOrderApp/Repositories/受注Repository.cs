@@ -74,7 +74,7 @@ namespace BlazorOrderApp.Repositories
         // 単一 Select
         public async Task<受注Model?> GetByIdAsync(int? 受注ID)
         {
-            if (受注ID  == null)  return null;
+            if (受注ID == null) return null;
 
             using var conn = new SqlConnection(_connectionString);
 

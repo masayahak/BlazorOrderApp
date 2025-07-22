@@ -12,7 +12,7 @@ namespace BlazorOrderApp.Models
         public int 受注ID { get; set; }
         [Required(ErrorMessage = "受注日を入力してください")]
         public DateTime 受注日 { get; set; }
-        [Required(ErrorMessage ="得意先を入力してください")]
+        [Required(ErrorMessage = "得意先を入力してください")]
         public int 得意先ID { get; set; }
         [Required(ErrorMessage = "得意先を入力してください")]
         public string 得意先名 { get; set; } = string.Empty;

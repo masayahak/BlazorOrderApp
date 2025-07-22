@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using BlazorOrderApp.Services;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace BlazorOrderApp.Pages
 {

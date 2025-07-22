@@ -24,7 +24,7 @@ builder.Services
         // 20分で自動的にログアウト
         options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
         // アクセスごとに延長
-        options.SlidingExpiration = true; 
+        options.SlidingExpiration = true;
 
         options.LoginPath = "/login";
         options.Events.OnRedirectToLogin = context =>
