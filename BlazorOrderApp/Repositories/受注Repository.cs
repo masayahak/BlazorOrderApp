@@ -117,7 +117,7 @@ namespace BlazorOrderApp.Repositories
         public async Task AddAsync(受注Model model)
         {
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
 
             try
@@ -157,7 +157,7 @@ namespace BlazorOrderApp.Repositories
         public async Task UpdateAsync(受注Model model)
         {
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
 
             try
@@ -198,7 +198,7 @@ namespace BlazorOrderApp.Repositories
         public async Task DeleteAsync(int 受注ID)
         {
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
 
             try
