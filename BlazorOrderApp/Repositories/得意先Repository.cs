@@ -26,14 +26,12 @@ namespace BlazorOrderApp.Repositories
         public async Task<List<得意先Model>> GetAllAsync()
         {
             using var conn = new SqlConnection(_connectionString);
-
             var dataSql = @"
                 select 得意先ID, 得意先名, 電話番号, 備考
                   from 得意先
                  order by 得意先名
             ";
             var list = await conn.QueryAsync<得意先Model>(dataSql);
-
             return list.ToList();
         }
 

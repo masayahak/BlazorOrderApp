@@ -35,7 +35,7 @@
                 <tr>
                     <td>@row.商品コード</td>
                     <td>@row.商品名</td>
-                    <td class="text-end pe-3">¥@row.単価.ToString("#,##0")</td>
+                    <td class="text-end pe-3">¥@row.単価?.ToString("#,##0")</td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-outline-primary" @onclick="() => OnEdit(row.商品コード)">
                             修正・確認

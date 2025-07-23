@@ -49,13 +49,14 @@ namespace BlazorOrderApp.Models
     {
         public int 明細ID { get; set; }
         public int 受注ID { get; set; }
-        [Required]
+        [Required(ErrorMessage = "商品コードを入力してください")]
         public string 商品コード { get; set; } = string.Empty;
         [Required]
         public string 商品名 { get; set; } = string.Empty;
         [Required]
         public decimal 単価 { get; set; }
-        [Required]
+        [Required(ErrorMessage = "数量を入力してください")]
+        [Range(1, int.MaxValue, ErrorMessage = "数量は1以上を入力してください")]
         public int 数量 { get; set; }
 
         public decimal 金額 => 単価 * 数量;
