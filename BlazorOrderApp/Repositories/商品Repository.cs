@@ -1,6 +1,6 @@
 ﻿using BlazorOrderApp.Models;
 using Dapper;
-using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
 
 namespace BlazorOrderApp.Repositories
 {
@@ -26,7 +26,7 @@ namespace BlazorOrderApp.Repositories
         // 全件Select
         public async Task<List<商品Model>> GetAllAsync()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
 
             var dataSql = @"
                 select 商品コード, 商品名, 単価, 備考
@@ -41,14 +41,15 @@ namespace BlazorOrderApp.Repositories
         // 検索
         public async Task<List<商品Model>> SearchAsync(string keyword)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
 
             var dataSql = @"
-                select top 10
+                select
                         商品コード, 商品名, 単価, 備考
                   from 商品
                 where ( 商品コード like @keyword or 商品名 like @keyword)
                  order by 商品コード
+                limit 10
             ";
             var list = await conn.QueryAsync<商品Model>(dataSql, new { keyword = $"%{keyword}%" });
 
@@ -58,7 +59,7 @@ namespace BlazorOrderApp.Repositories
         // 単一 Select
         public async Task<商品Model?> GetByCodeAsync(string 商品コード)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
 
             var sql = @"
             select 商品コード, 商品名, 単価, 備考
@@ -73,7 +74,7 @@ namespace BlazorOrderApp.Repositories
         // Insert
         public async Task AddAsync(商品Model model)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
 
@@ -96,7 +97,7 @@ namespace BlazorOrderApp.Repositories
         // Update
         public async Task UpdateAsync(商品Model model)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
 
@@ -122,7 +123,7 @@ namespace BlazorOrderApp.Repositories
         // Delete
         public async Task DeleteAsync(string 商品コード)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
 

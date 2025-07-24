@@ -1,6 +1,6 @@
 ﻿using BlazorOrderApp.Models;
 using Dapper;
-using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
 
 namespace BlazorOrderApp.Repositories
 {
@@ -26,7 +26,7 @@ namespace BlazorOrderApp.Repositories
         // 全件
         public async Task<IEnumerable<受注Model>> GetAllAsync()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
 
             var dataSql = @"
                 select 受注ID, 受注日, 得意先ID, 得意先名, 合計金額, 備考
@@ -41,7 +41,7 @@ namespace BlazorOrderApp.Repositories
         // 検索
         public async Task<IEnumerable<受注Model>> SearchAsync(DateTime startDate, DateTime endDate, string keyword)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
 
             var dataSql = @"
                  with sub as (
@@ -76,7 +76,7 @@ namespace BlazorOrderApp.Repositories
         {
             if (受注ID == null) return null;
 
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
 
             var sql = @"
                 select o.受注ID, o.受注日, o.得意先ID, o.得意先名, o.合計金額, o.備考,
@@ -116,7 +116,7 @@ namespace BlazorOrderApp.Repositories
         // Insert
         public async Task AddAsync(受注Model model)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
 
@@ -128,10 +128,10 @@ namespace BlazorOrderApp.Repositories
                 // 受注テーブル
                 var sql1 = @"
                     insert into 受注 (受注日, 得意先ID, 得意先名, 合計金額, 備考)
-                    output inserted.受注ID
-                    values (@受注日, @得意先ID, @得意先名, @合計金額, @備考)
+                    values (@受注日, @得意先ID, @得意先名, @合計金額, @備考);
+                    select last_insert_rowid();
                 ";
-                model.受注ID = await conn.ExecuteScalarAsync<int>(sql1, model, tran);
+                model.受注ID = (int)(await conn.ExecuteScalarAsync<long>(sql1, model, tran));
 
                 // 受注明細テーブル
                 var sql2 = @"
@@ -156,7 +156,7 @@ namespace BlazorOrderApp.Repositories
         // Update
         public async Task UpdateAsync(受注Model model)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
 
@@ -197,7 +197,7 @@ namespace BlazorOrderApp.Repositories
         // Delete
         public async Task DeleteAsync(int 受注ID)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
 

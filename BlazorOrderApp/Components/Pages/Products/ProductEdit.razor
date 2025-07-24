@@ -1,9 +1,9 @@
 ﻿@page "/products/edit"
 @page "/products/edit/{商品コード}"
 
-@using Microsoft.Data.SqlClient
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
+@using Microsoft.Data.Sqlite;
 @attribute [Authorize(Roles = "Administrator")]
 
 <h3>商品マスタ @((isEdit ? "修正" : "追加"))</h3>
@@ -127,9 +127,9 @@
             }
             OnBack();
         }
-        catch (SqlException ex) // Dapper+SQLServerの場合
+        catch (SqliteException ex)
         {
-            if (ex.Number == 2627 /*一意制約違反*/ || ex.Number == 2601)
+            if (ex.SqliteErrorCode == 19) // 一意制約違反（UNIQUE constraint failed）
             {
                 errorMessage = "同じ商品コードが既に登録されています。";
             }

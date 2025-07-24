@@ -1,6 +1,6 @@
 ﻿using BlazorOrderApp.Models;
 using Dapper;
-using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
 
 namespace BlazorOrderApp.Repositories
 {
@@ -25,7 +25,7 @@ namespace BlazorOrderApp.Repositories
         // 全件Select
         public async Task<List<得意先Model>> GetAllAsync()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
             var dataSql = @"
                 select 得意先ID, 得意先名, 電話番号, 備考
                   from 得意先
@@ -42,7 +42,7 @@ namespace BlazorOrderApp.Repositories
                 id = -1;
             }
 
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
 
             var sql = @"
             select 得意先ID, 得意先名, 電話番号, 備考
@@ -57,7 +57,7 @@ namespace BlazorOrderApp.Repositories
         // Insert
         public async Task AddAsync(得意先Model model)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
 
@@ -80,7 +80,7 @@ namespace BlazorOrderApp.Repositories
         // Update
         public async Task UpdateAsync(得意先Model model)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
 
@@ -106,7 +106,7 @@ namespace BlazorOrderApp.Repositories
         // Delete
         public async Task DeleteAsync(int 得意先ID)
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqliteConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
 
