@@ -27,6 +27,15 @@ Blazor全体をServerレンダーモードにしたいが、Cookie認証を利�
         <div class="card-body">
             <span class="bi-user-circle me-3" style="font-size:2rem; vertical-align:middle;"></span>
             <h4 class="card-title text-center d-inline align-middle" style="margin:0;">受注管理デモ ログイン</h4>
+            
+            <div class="mb-3">
+                <label class="form-label">テスト用アカウント</label>
+                <ul class="mb-0 ps-3">
+                    <li><strong>管理者:</strong> admin / admin</li>
+                    <li><strong>一般ユーザー:</strong> test / test</li>
+                </ul>
+            </div>
+            
             <div class="mb-4"></div>
             <form method="post" autocomplete="off">
                 @Html.AntiForgeryToken()
