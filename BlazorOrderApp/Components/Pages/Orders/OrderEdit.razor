@@ -15,7 +15,7 @@
 }
 else
 {
-    <EditForm Model="受注Model" OnValidSubmit="OnValidSubmit">
+    <EditForm EditContext="editContext" OnSubmit="OnSubmit">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
@@ -33,6 +33,7 @@ else
                 <SuggestTextBox
                     Id="得意先名"
                     Value="@受注Model.得意先名"
+                    Placeholder="(得意先名で検索)"
                     OnValueChanged="val => {
                         受注Model.得意先名 = val;
                         if (string.IsNullOrEmpty(val)) 受注Model.得意先ID = 0;
@@ -41,6 +42,7 @@ else
                     FetchSuggestions="Fetch得意先サジェスト"
                     OnSelect="On得意先Select"
                     DisplayValueSelector="@(item => item.Name)" />
+                <ValidationMessage For="() => 受注Model.得意先名" class="text-danger" />
                 <input type="hidden" value="@受注Model.得意先ID" />
             </div>
             <div class="mb-2 col-md-2">
@@ -76,12 +78,17 @@ else
                             <SuggestTextBox InputClass="form-control"
                                             Placeholder="(商品コード/名で検索)"
                                             Value="@m.商品コード"
-                                            OnValueChanged="val => m.商品コード = val"
+                                            OnValueChanged=@(val => {
+                                                m.商品コード = val;
+                                                m.商品名 = "";
+                                                m.単価 = 0;
+                                            })                                            
                                             StartSearchChars="2"
                                             FetchSuggestions="Fetch商品サジェスト"
                                             OnSelect="@(item => On商品Select(item, m))"
                                             DisplayValueSelector="@(item => item.Code)" 
                                             />
+                            <ValidationMessage For="() => m.商品コード" class="text-danger" />
                         </td>
                         <td>
                             <input type="text" value="@m.商品名" class="form-control bg-light readonly-field" readonly />
@@ -94,7 +101,9 @@ else
                             <input type="number"
                                    value="@m.数量"
                                    @onchange="e => On数量変更(m, e.Value)"
-                                   class="form-control text-end" min="0" autocomplete="off" />
+                                   class="form-control text-end" required min="1" max="999" autocomplete="off" />
+                            <ValidationMessage For="() => m.数量" class="text-danger" />
+
                         </td>
                         <td class="text-center">
                             <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => On明細削除(m)">削除</button>
@@ -158,6 +167,7 @@ else
     public string? Keyword { get; set; }
 
     private 受注Model 受注Model = new();
+    private EditContext? editContext;
 
     private bool showDeleteConfirm = false;
 
@@ -169,6 +179,8 @@ else
     // ==================================================
     protected override async Task OnInitializedAsync()
     {
+        editContext = new EditContext(受注Model);
+
         // ----- 修正時 -----
         if (受注ID.HasValue && 受注ID.Value > 0)
         {
@@ -176,6 +188,7 @@ else
             if (item != null)
             {
                 受注Model = item;
+                editContext = new EditContext(受注Model);
             }
         }
         // ----- 登録時 -----
@@ -191,6 +204,16 @@ else
         得意先全件 = await 得意先Repository.GetAllAsync();
 
         再計算合計金額();
+    }
+
+    private ValidationMessageStore? messageStore;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && editContext != null)
+        {
+            messageStore = new ValidationMessageStore(editContext);
+        }
     }
 
     // ==================================================
@@ -285,12 +308,13 @@ else
     // ==================================================
     private void On数量変更(受注明細Model m, object? value)
     {
-        if (value is int intValue)
-            m.数量 = intValue;
-        else if (value is null)
-            m.数量 = 0; // or nullでもOK
-        else
-            m.数量 = Convert.ToInt32(value);
+        if (!int.TryParse(value?.ToString(), out int v))
+        {
+            v = 0;
+            messageStore?.Add(() => m.数量, "数値を入力して下さい");
+            StateHasChanged();
+        }
+        m.数量 = v;
 
         再計算合計金額();
     }
@@ -327,14 +351,50 @@ else
     // ==================================================
     // データの登録・修正・削除
     // ==================================================
-    private async Task OnValidSubmit()
+    private async Task OnSubmit()
     {
+        // 入力チェック
+        messageStore?.Clear();
+        if (!IsValid()) return;
+
         if (IsEdit)
             await 受注Repository.UpdateAsync(受注Model);
         else
             await 受注Repository.AddAsync(受注Model);
 
         NavToIndex();
+    }
+
+    private bool IsValid()
+    {
+        if (editContext is null) return false;
+
+        // 標準的なValidation
+        var isValid = editContext.Validate();
+
+        // 得意先名が候補に一致しているかチェック（先に全件取得済み）
+        if (!得意先全件.Any(c => c.得意先名 == 受注Model.得意先名))
+        {
+            messageStore?.Add(() => 受注Model.得意先名, "得意先は存在しません");
+        }
+
+        // 明細すべてに対してチェック
+        foreach (var (m, i) in 受注Model.明細一覧.Select((x, idx) => (x, idx)))
+        {
+            // 商品名が設定されていない＝一致していない
+            if (string.IsNullOrWhiteSpace(m.商品名))
+            {
+                messageStore?.Add(() => 受注Model.明細一覧[i].商品コード, "商品が存在しません");
+            }
+        }
+
+        if (editContext!.GetValidationMessages().Any())
+        {
+            editContext!.NotifyValidationStateChanged();
+            return false;
+        }
+
+        return true;
     }
 
     private async Task OnDelete()

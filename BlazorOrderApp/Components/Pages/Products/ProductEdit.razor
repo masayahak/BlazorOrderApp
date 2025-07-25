@@ -21,27 +21,42 @@
             <label for="商品コード" class="form-label mb-0 me-2" style="width: 80px;">商品コード</label>
             @if (isEdit)
             {
-                <InputText id="商品コード" class="form-control readonly-field" style="width:160px;" @bind-Value="model.商品コード" Disabled />
-            }
+                <InputText id="商品コード" 
+                        @bind-Value="model.商品コード"
+                        class="form-control readonly-field" style="width:160px;"
+                        Disabled />
+    }
             else
             {
-                <InputText id="商品コード" class="form-control" style="width:160px;" @bind-Value="model.商品コード" autocomplete="off" />
+                <InputText id="商品コード" required 
+                        @bind-Value="model.商品コード"
+                        class="form-control" style="width:160px;"
+                        autocomplete="off" />
                 <ValidationMessage For="() => model.商品コード" />
             }
         </div>
         <div class="mb-3 d-flex align-items-center">
             <label for="商品名" class="form-label mb-0 me-2" style="width: 80px;">商品名</label>
-            <InputText id="商品名" class="form-control" style="width:320px;" @bind-Value="model.商品名" autocomplete="off" />
+            <InputText id="商品名" required 
+                       @bind-Value="model.商品名"
+                       class="form-control" style="width:320px;"
+                       autocomplete="off" />
             <ValidationMessage For="() => model.商品名" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
             <label for="単価" class="form-label mb-0 me-2" style="width: 80px;">単価</label>
-            <InputNumber id="単価" class="form-control text-end" style="width:160px;" @bind-Value="model.単価" step="1" min="0" autocomplete="off" />
+            <InputNumber id="単価" required min="0" max="999999999" step="1"
+                         @bind-Value="model.単価"
+                         class="form-control text-end" style="width:160px;" 
+                         autocomplete="off" />
             <ValidationMessage For="() => model.単価" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
             <label for="備考" class="form-label mb-0 me-2" style="width: 80px;">備考</label>
-            <InputText id="備考" class="form-control" @bind-Value="model.備考" autocomplete="off" />
+            <InputText id="備考" 
+                       @bind-Value="model.備考"
+                       class="form-control"
+                       autocomplete="off" />
         </div>
     </div>
 

@@ -15,17 +15,26 @@
         <input type="hidden" name="得意先ID" value="@model.得意先ID" />
         <div class="mb-3 d-flex align-items-center">
             <label for="得意先名" class="form-label mb-0 me-2" style="width: 80px;">得意先名</label>
-            <InputText id="得意先名" class="form-control" style="width:320px;" @bind-Value="model.得意先名" autocomplete="off" />
+            <InputText id="得意先名" required
+                       @bind-Value="model.得意先名"
+                       class="form-control" style="width:320px;"
+                       autocomplete="off" />
             <ValidationMessage For="() => model.得意先名" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
             <label for="電話番号" class="form-label mb-0 me-2" style="width: 80px;">電話番号</label>
-            <InputText id="電話番号" class="form-control" style="width:320px;" @bind-Value="model.電話番号" autocomplete="off" />
+            <InputText id="電話番号" required
+                       @bind-Value="model.電話番号"
+                       class="form-control" style="width:320px;"
+                       autocomplete="off" />
             <ValidationMessage For="() => model.電話番号" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
             <label for="備考" class="form-label mb-0 me-2" style="width: 80px;">備考</label>
-            <InputText id="備考" class="form-control" @bind-Value="model.備考" autocomplete="off" />
+            <InputText id="備考" required
+                       @bind-Value="model.備考"
+                       class="form-control"
+                       autocomplete="off" />
         </div>
     </div>
 

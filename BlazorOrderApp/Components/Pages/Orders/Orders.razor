@@ -47,7 +47,7 @@
             <Virtualize Context="row" Items="@表示一覧" OverscanCount="5" SpacerElement="tr">
                 <tr>
                     <td class="text-end pe-3">@row.受注ID</td>
-                    <td class="text-center">@row.受注日.ToString("yyyy/MM/dd (ddd)")</td>
+                    <td class="text-center">@row.受注日.ToString("yyyy/MM/dd (ddd)", new System.Globalization.CultureInfo("ja-JP"))</td>
                     <td>@row.得意先名</td>
                     <td class="text-end pe-3">￥@row.合計金額.ToString("N0")</td>
                     <td class="text-center">
