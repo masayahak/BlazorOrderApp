@@ -86,8 +86,8 @@ namespace BlazorOrderApp.Repositories
                  where o.受注ID = @受注ID
             ";
 
+            // １：Ｎのデータ構造を１ＳＱＬで取得する
             var lookup = new Dictionary<int, 受注Model>();
-
             await conn.QueryAsync<受注Model, 受注明細Model, 受注Model>(
                 sql,
                 (o, d) =>

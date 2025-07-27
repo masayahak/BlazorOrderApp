@@ -44,8 +44,7 @@ namespace BlazorOrderApp.Repositories
             using var conn = new SqliteConnection(_connectionString);
 
             var dataSql = @"
-                select
-                        商品コード, 商品名, 単価, 備考
+                select 商品コード, 商品名, 単価, 備考
                   from 商品
                 where ( 商品コード like @keyword or 商品名 like @keyword)
                  order by 商品コード
@@ -62,10 +61,10 @@ namespace BlazorOrderApp.Repositories
             using var conn = new SqliteConnection(_connectionString);
 
             var sql = @"
-            select 商品コード, 商品名, 単価, 備考
-              from 商品
-             where 商品コード = @商品コード
-        ";
+                select 商品コード, 商品名, 単価, 備考
+                  from 商品
+                 where 商品コード = @商品コード
+            ";
 
             var item = await conn.QueryFirstOrDefaultAsync<商品Model>(sql, new { 商品コード });
             return item;

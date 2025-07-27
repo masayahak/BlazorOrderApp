@@ -7,7 +7,7 @@ namespace BlazorOrderApp.Repositories
     public interface I得意先Repository
     {
         Task<List<得意先Model>> GetAllAsync();
-        Task<得意先Model?> GetByIdAsync(string? 得意先ID);
+        Task<得意先Model?> GetByIdAsync(int? 得意先ID);
         Task AddAsync(得意先Model model);
         Task UpdateAsync(得意先Model model);
         Task DeleteAsync(int 得意先ID);
@@ -35,22 +35,19 @@ namespace BlazorOrderApp.Repositories
             return list.ToList();
         }
 
-        public async Task<得意先Model?> GetByIdAsync(string? str得意先ID)
+        public async Task<得意先Model?> GetByIdAsync(int? 得意先ID)
         {
-            if (!int.TryParse(str得意先ID, out int id))
-            {
-                id = -1;
-            }
+            if (得意先ID == null) return null;
 
             using var conn = new SqliteConnection(_connectionString);
 
             var sql = @"
-            select 得意先ID, 得意先名, 電話番号, 備考
-              from 得意先
-             where 得意先ID = @id
-        ";
+                select 得意先ID, 得意先名, 電話番号, 備考
+                  from 得意先
+                 where 得意先ID = @id
+            ";
 
-            var item = await conn.QueryFirstOrDefaultAsync<得意先Model>(sql, new { id });
+            var item = await conn.QueryFirstOrDefaultAsync<得意先Model>(sql, new { 得意先ID });
             return item;
         }
 

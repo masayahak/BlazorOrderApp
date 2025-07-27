@@ -5,10 +5,14 @@
                @bind-Value="_input"
                class="@InputClass"
                placeholder="@Placeholder"
+               @onfocus="OnFocus"
                @oninput="OnInput"
+               @onkeydown="OnKeyDown"
+               @onblur="OnBlur"
                autocomplete="off" />
     <div class="list-group position-absolute w-100" style="z-index:10;"
-         hidden="@(SuggestList.Count == 0)">
+         hidden="@(SuggestList.Count == 0)"
+        @onmousedown="@(() => _isListClicked = true)">
         @foreach (var item in SuggestList)
         {
             <button type="button" class="list-group-item list-group-item-action"
@@ -32,6 +36,7 @@
 
     private string _input = "";
     private List<SuggestModel> SuggestList { get; set; } = new();
+    private bool _isListClicked = false;
 
     private CancellationTokenSource? debounceCts;
 
@@ -42,11 +47,31 @@
             _input = Value;
     }
 
+    private async Task OnFocus(FocusEventArgs e)
+    {
+        // 入力0で表示設定の場合
+        if (StartSearchChars == 0 && string.IsNullOrEmpty(_input) && FetchSuggestions != null)
+        {
+            var result = await FetchSuggestions("");
+            SuggestList = result;
+            StateHasChanged();
+            return;
+        }
+    }
+
     private async Task OnInput(ChangeEventArgs e)
     {
         _input = e.Value?.ToString() ?? "";
         // 入力クリアされた時の初期化
         await OnValueChanged.InvokeAsync(_input);
+        // 入力0で表示設定の場合
+        if (StartSearchChars == 0 && _input.Length == 0 && FetchSuggestions != null)
+        {
+            var result = await FetchSuggestions("");
+            SuggestList = result;
+            StateHasChanged();
+            return;
+        }
 
         if (_input.Length < StartSearchChars)
         {
@@ -78,6 +103,29 @@
         {
             // 無視
         }
+    }
+
+    // ESCキーでリストを閉じる
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            SuggestList.Clear();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // コントロールのフォーカス喪失時にリストを閉じる
+    private async Task OnBlur(FocusEventArgs e)
+    {
+        if (_isListClicked)
+        {
+            _isListClicked = false; // リセット
+            return; // 今回は閉じない
+        }
+
+        SuggestList.Clear();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async void On候補選択(SuggestModel item)

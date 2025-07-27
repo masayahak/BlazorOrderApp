@@ -79,12 +79,12 @@
     public I得意先Repository 得意先Repository { get; set; } = default!;
 
     [Parameter, SupplyParameterFromQuery]
-    public string? 得意先ID { get; set; }
+    public int? 得意先ID { get; set; }
     [Parameter, SupplyParameterFromQuery]
     public string? keyword { get; set; }
 
     private 得意先Model model = new();
-    private bool isEdit => !string.IsNullOrEmpty(得意先ID);
+    private bool isEdit => !(得意先ID == null);
 
     private bool showDeleteConfirm = false;
 
