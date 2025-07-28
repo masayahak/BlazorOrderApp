@@ -1,5 +1,4 @@
 using BlazorOrderApp.Components;
-using BlazorOrderApp.Repositories;
 using BlazorOrderApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
@@ -9,9 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddScoped<I商品Repository, 商品Repository>();
-builder.Services.AddScoped<I得意先Repository, 得意先Repository>();
-builder.Services.AddScoped<I受注Repository, 受注Repository>();
+//DI
+builder.Services.AddApplicationServices();
 
 // ----------- Cookie認証 --------------------------------
 // ログイン／ログアウト用のRazor Pages

@@ -209,11 +209,11 @@ else
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
     [Inject]
-    public I受注Repository 受注Repository { get; set; } = default!;
+    public IOrderRepository 受注Repository { get; set; } = default!;
     [Inject]
-    public I得意先Repository 得意先Repository { get; set; } = default!;
+    public ICustomerRepository 得意先Repository { get; set; } = default!;
     [Inject]
-    public I商品Repository 商品Repository { get; set; } = default!;
+    public IProductRepository 商品Repository { get; set; } = default!;
 
     [Parameter, SupplyParameterFromQuery]
     public int? 受注ID { get; set; }
@@ -224,7 +224,7 @@ else
     [Parameter, SupplyParameterFromQuery]
     public string? Keyword { get; set; }
 
-    private 受注Model 受注Model = new();
+    private OrderModel 受注Model = new();
     private EditContext? editContext;
 
     private bool showDeleteConfirm = false;
@@ -281,7 +281,7 @@ else
     // ・頻繁にDBアクセスさせない。最初に全件読み込みレスポンスに全件含める。
     // ・条件指定でレスポンス済みのデータから絞り込み
     // ==================================================
-    private List<得意先Model> 得意先全件 = new();
+    private List<CustomerModel> 得意先全件 = new();
 
     // サジェスト取得ロジック
     private Task<List<SuggestTextBox.SuggestModel>> Fetch得意先サジェスト(string keyword)
@@ -313,7 +313,7 @@ else
             受注Model.得意先名 = "";
             return;
         }
-        var p = item.AddInfo as 得意先Model;
+        var p = item.AddInfo as CustomerModel;
         if (p is null) return;
         受注Model.得意先ID = p.得意先ID;
         受注Model.得意先名 = p.得意先名;
@@ -339,7 +339,7 @@ else
         }).ToList();
     }
 
-    private void On商品Select(SuggestTextBox.SuggestModel? item, 受注明細Model 明細)
+    private void On商品Select(SuggestTextBox.SuggestModel? item, OrderDetailModel 明細)
     {
         明細.商品コード = "";
         明細.商品名 = "";
@@ -351,7 +351,7 @@ else
         }
         else
         {
-            var p = item.AddInfo as 商品Model;
+            var p = item.AddInfo as ProductModel;
             if (p is null) return;
 
             明細.商品コード = p.商品コード;
@@ -364,7 +364,7 @@ else
     // ==================================================
     // 金額の再計算関連
     // ==================================================
-    private void On数量変更(受注明細Model m, object? value)
+    private void On数量変更(OrderDetailModel m, object? value)
     {
         if (!int.TryParse(value?.ToString(), out int v))
         {
@@ -391,12 +391,12 @@ else
         if (受注Model?.明細一覧 == null) return;
         if (受注Model.明細一覧.Count < 10)
         {
-            受注Model.明細一覧.Add(new 受注明細Model());
+            受注Model.明細一覧.Add(new OrderDetailModel());
             StateHasChanged();
         }
     }
 
-    private void On明細削除(受注明細Model m)
+    private void On明細削除(OrderDetailModel m)
     {
         if (受注Model?.明細一覧 == null) return;
         受注Model.明細一覧.Remove(m);
@@ -458,7 +458,7 @@ else
     private async Task OnDelete()
     {
         if (受注Model == null) return;
-        await 受注Repository.DeleteAsync(受注Model.受注ID);
+        await 受注Repository.DeleteAsync(受注Model);
         NavToIndex();
     }
 

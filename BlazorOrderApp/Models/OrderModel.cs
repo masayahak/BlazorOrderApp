@@ -2,12 +2,12 @@
 
 namespace BlazorOrderApp.Models
 {
-    public static class 受注ModelConst
+    public static class OrderModelConst
     {
         public const int MAX_受注明細_COUNT = 10;
     }
 
-    public class 受注Model : IValidatableObject
+    public class OrderModel : IValidatableObject
     {
         public int 受注ID { get; set; }
         [Required(ErrorMessage = "受注日を入力してください")]
@@ -20,15 +20,16 @@ namespace BlazorOrderApp.Models
         [Range(1, double.MaxValue, ErrorMessage = "合計金額は1円以上になるようにしてください")]
         public decimal 合計金額 { get; set; }
         public string? 備考 { get; set; }
+        public int Version { get; set; }
 
-        public List<受注明細Model> 明細一覧 { get; set; } = new();
+        public List<OrderDetailModel> 明細一覧 { get; set; } = new();
 
         // Blazor では親モデルしかValidationされない。親に子供のValidationを追加
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             // 明細行数のチェック
-            if (明細一覧.Count < 1 || 明細一覧.Count > 受注ModelConst.MAX_受注明細_COUNT)
-                yield return new ValidationResult($"明細行は1～{受注ModelConst.MAX_受注明細_COUNT}行で入力してください", new[] { "明細一覧" });
+            if (明細一覧.Count < 1 || 明細一覧.Count > OrderModelConst.MAX_受注明細_COUNT)
+                yield return new ValidationResult($"明細行は1～{OrderModelConst.MAX_受注明細_COUNT}行で入力してください", new[] { "明細一覧" });
 
             // 明細ごとの既存チェック
             foreach (var (明細, i) in 明細一覧.Select((v, idx) => (v, idx + 1)))
@@ -45,7 +46,7 @@ namespace BlazorOrderApp.Models
         }
     }
 
-    public class 受注明細Model
+    public class OrderDetailModel
     {
         public int 明細ID { get; set; }
         public int 受注ID { get; set; }

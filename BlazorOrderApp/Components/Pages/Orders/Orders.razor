@@ -64,7 +64,7 @@
 
 @code {
     [Inject] private NavigationManager Navigation { get; set; } = default!;
-    [Inject] public I受注Repository 受注Repository { get; set; } = default!;
+    [Inject] public IOrderRepository 受注Repository { get; set; } = default!;
 
     [Parameter, SupplyParameterFromQuery]
     public string StartDate { get; set; } = string.Empty;
@@ -73,7 +73,7 @@
     [Parameter, SupplyParameterFromQuery]
     public string Keyword { get; set; } = string.Empty;
 
-    private List<受注Model> 表示一覧 = new();  // 絞り込みでフィルターされる
+    private List<OrderModel> 表示一覧 = new();  // 絞り込みでフィルターされる
 
     protected override async Task OnInitializedAsync()
     {

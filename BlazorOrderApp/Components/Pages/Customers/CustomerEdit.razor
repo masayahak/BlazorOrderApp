@@ -1,5 +1,5 @@
 ﻿@page "/customers/edit"
-@page "/customers/edit/{得意先ID}"
+@page "/customers/edit/{得意先ID:int}"
 
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
@@ -12,7 +12,6 @@
     <DataAnnotationsValidator />
 
     <div class="row mb-2">
-        <input type="hidden" name="得意先ID" value="@model.得意先ID" />
         <div class="mb-3 d-flex align-items-center">
             <label for="得意先名" class="form-label mb-0 me-2" style="width: 80px;">得意先名</label>
             <InputText id="得意先名" required
@@ -31,7 +30,7 @@
         </div>
         <div class="mb-3 d-flex align-items-center">
             <label for="備考" class="form-label mb-0 me-2" style="width: 80px;">備考</label>
-            <InputText id="備考" required
+            <InputText id="備考"
                        @bind-Value="model.備考"
                        class="form-control"
                        autocomplete="off" />
@@ -76,14 +75,14 @@
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
     [Inject]
-    public I得意先Repository 得意先Repository { get; set; } = default!;
+    public ICustomerRepository 得意先Repository { get; set; } = default!;
 
     [Parameter, SupplyParameterFromQuery]
     public int? 得意先ID { get; set; }
     [Parameter, SupplyParameterFromQuery]
     public string? keyword { get; set; }
 
-    private 得意先Model model = new();
+    private CustomerModel model = new();
     private bool isEdit => !(得意先ID == null);
 
     private bool showDeleteConfirm = false;
@@ -100,7 +99,7 @@
         else
         {
             // 追加時：初期化
-            model = new 得意先Model();
+            model = new CustomerModel();
         }
     }
 
@@ -132,7 +131,7 @@
 
     private async Task OnDelete()
     {
-        await 得意先Repository.DeleteAsync(model.得意先ID);
+        await 得意先Repository.DeleteAsync(model);
         showDeleteConfirm = false;
         OnBack();
     }

@@ -1,30 +1,31 @@
 ﻿using BlazorOrderApp.Models;
 using Dapper;
 using Microsoft.Data.Sqlite;
+using System.Data;
 
 namespace BlazorOrderApp.Repositories
 {
-    public interface I商品Repository
+    public interface IProductRepository
     {
-        Task<List<商品Model>> GetAllAsync();
-        Task<List<商品Model>> SearchAsync(string keyword);
-        Task<商品Model?> GetByCodeAsync(string 商品コード);
-        Task AddAsync(商品Model model);
-        Task UpdateAsync(商品Model model);
-        Task DeleteAsync(string 商品コード);
+        Task<List<ProductModel>> GetAllAsync();
+        Task<List<ProductModel>> SearchAsync(string keyword);
+        Task<ProductModel?> GetByCodeAsync(string 商品コード);
+        Task AddAsync(ProductModel model);
+        Task UpdateAsync(ProductModel model);
+        Task DeleteAsync(ProductModel model);
     }
 
-    public class 商品Repository : I商品Repository
+    public class ProductRepository : IProductRepository
     {
         private readonly string _connectionString;
 
-        public 商品Repository(IConfiguration config)
+        public ProductRepository(IConfiguration config)
         {
             _connectionString = config.GetConnectionString("DefaultConnection")!;
         }
 
         // 全件Select
-        public async Task<List<商品Model>> GetAllAsync()
+        public async Task<List<ProductModel>> GetAllAsync()
         {
             using var conn = new SqliteConnection(_connectionString);
 
@@ -33,46 +34,48 @@ namespace BlazorOrderApp.Repositories
                   from 商品
                  order by 商品コード
             ";
-            var list = await conn.QueryAsync<商品Model>(dataSql);
+            var list = await conn.QueryAsync<ProductModel>(dataSql);
 
             return list.ToList();
         }
 
         // 検索
-        public async Task<List<商品Model>> SearchAsync(string keyword)
+        public async Task<List<ProductModel>> SearchAsync(string keyword)
         {
             using var conn = new SqliteConnection(_connectionString);
 
             var dataSql = @"
-                select 商品コード, 商品名, 単価, 備考
+                select 商品コード, 商品名, 単価, 備考, Version
                   from 商品
                 where ( 商品コード like @keyword or 商品名 like @keyword)
                  order by 商品コード
                 limit 10
             ";
-            var list = await conn.QueryAsync<商品Model>(dataSql, new { keyword = $"%{keyword}%" });
+            var list = await conn.QueryAsync<ProductModel>(dataSql, new { keyword = $"%{keyword}%" });
 
             return list.ToList();
         }
 
         // 単一 Select
-        public async Task<商品Model?> GetByCodeAsync(string 商品コード)
+        public async Task<ProductModel?> GetByCodeAsync(string 商品コード)
         {
             using var conn = new SqliteConnection(_connectionString);
 
             var sql = @"
-                select 商品コード, 商品名, 単価, 備考
+                select 商品コード, 商品名, 単価, 備考, Version
                   from 商品
                  where 商品コード = @商品コード
             ";
 
-            var item = await conn.QueryFirstOrDefaultAsync<商品Model>(sql, new { 商品コード });
+            var item = await conn.QueryFirstOrDefaultAsync<ProductModel>(sql, new { 商品コード });
             return item;
         }
 
         // Insert
-        public async Task AddAsync(商品Model model)
+        public async Task AddAsync(ProductModel model)
         {
+            model.Version = 1;
+
             using var conn = new SqliteConnection(_connectionString);
             await conn.OpenAsync();
             using var tran = conn.BeginTransaction();
@@ -80,8 +83,8 @@ namespace BlazorOrderApp.Repositories
             try
             {
                 var sql = @"
-                    insert into 商品 (商品コード, 商品名, 単価, 備考)
-                    values (@商品コード, @商品名, @単価, @備考)
+                    insert into 商品 (商品コード, 商品名, 単価, 備考, Version)
+                    values (@商品コード, @商品名, @単価, @備考, @Version)
                 ";
                 await conn.ExecuteAsync(sql, model, tran);
                 tran.Commit();
@@ -94,7 +97,7 @@ namespace BlazorOrderApp.Repositories
         }
 
         // Update
-        public async Task UpdateAsync(商品Model model)
+        public async Task UpdateAsync(ProductModel model)
         {
             using var conn = new SqliteConnection(_connectionString);
             await conn.OpenAsync();
@@ -106,10 +109,17 @@ namespace BlazorOrderApp.Repositories
                     update 商品 set
                         商品名 = @商品名,
                         単価 = @単価,
-                        備考 = @備考
+                        備考 = @備考,
+                        Version = Version + 1
                     where 商品コード = @商品コード
+                      and Version = @Version
                 ";
-                await conn.ExecuteAsync(sql, model, tran);
+                var rows = await conn.ExecuteAsync(sql, model, tran);
+                if (rows == 0)
+                {
+                    // 他ユーザーが既に更新済み
+                    throw new DBConcurrencyException("他で更新されています。再読み込みしてください。");
+                }
                 tran.Commit();
             }
             catch
@@ -120,7 +130,7 @@ namespace BlazorOrderApp.Repositories
         }
 
         // Delete
-        public async Task DeleteAsync(string 商品コード)
+        public async Task DeleteAsync(ProductModel model)
         {
             using var conn = new SqliteConnection(_connectionString);
             await conn.OpenAsync();
@@ -128,10 +138,18 @@ namespace BlazorOrderApp.Repositories
 
             try
             {
-                await conn.ExecuteAsync(@"
-                    delete from 商品 
+                var sql = @"
+                    delete from 商品
                     where 商品コード = @商品コード
-                ", new { 商品コード }, tran);
+                      and Version = @Version
+                ";
+                var rows = await conn.ExecuteAsync(sql, model, tran);
+                if (rows == 0)
+                {
+                    // 他ユーザーが既に更新済み
+                    throw new DBConcurrencyException("他で更新されています。再読み込みしてください。");
+                }
+
                 tran.Commit();
             }
             catch

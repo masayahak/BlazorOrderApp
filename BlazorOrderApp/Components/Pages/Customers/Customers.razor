@@ -50,13 +50,13 @@
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
     [Inject]
-    public I得意先Repository 得意先Repository { get; set; } = default!;
+    public ICustomerRepository 得意先Repository { get; set; } = default!;
 
     [Parameter, SupplyParameterFromQuery]
     public string keyword { get; set; } = string.Empty;
 
-    private List<得意先Model>? 得意先一覧;
-    private List<得意先Model> 表示一覧 = new();  // 絞り込みでフィルターされる
+    private List<CustomerModel>? 得意先一覧;
+    private List<CustomerModel> 表示一覧 = new();  // 絞り込みでフィルターされる
 
     protected override async Task OnInitializedAsync()
     {
