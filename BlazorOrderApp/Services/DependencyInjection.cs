@@ -9,6 +9,7 @@ namespace BlazorOrderApp.Services
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<ICustomerRepository, CustomerRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IOrderAnalysisRepository, OrderAnalysisRepository>();
 
             return services;
         }

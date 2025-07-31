@@ -1,3 +1,4 @@
+using ApexCharts;
 using BlazorOrderApp.Components;
 using BlazorOrderApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -8,8 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-//DI
+// DI
 builder.Services.AddApplicationServices();
+
+// グラフ用
+builder.Services.AddApexCharts();
 
 // ----------- Cookie認証 --------------------------------
 // ログイン／ログアウト用のRazor Pages

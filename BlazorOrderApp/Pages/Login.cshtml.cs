@@ -41,7 +41,7 @@ namespace BlazorOrderApp.Pages
 
             if (success)
             {
-                return Redirect("/orders");
+                return Redirect("/dashboard");
             }
             else
             {
