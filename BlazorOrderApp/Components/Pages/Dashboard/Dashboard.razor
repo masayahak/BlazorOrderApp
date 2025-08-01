@@ -144,7 +144,12 @@
             _ => endDate.AddMonths(-1)
         };
 
-        GraphData = (await OrderAnalysisRepo.Get日別受注金額Async(startDate, endDate)).ToList();
+        bool isWeekly = SelectedPeriod is "3m" or "6m" or "1y";
+        if (isWeekly)
+            GraphData = (await OrderAnalysisRepo.Get週別受注金額Async(startDate, endDate)).ToList();
+        else
+            GraphData = (await OrderAnalysisRepo.Get日別受注金額Async(startDate, endDate)).ToList();
+    
         CustomerRanking = (await OrderAnalysisRepo.Get得意先別受注金額Async(startDate, endDate)).ToList();
         ProductRanking = (await OrderAnalysisRepo.Get商品別受注金額Async(startDate, endDate)).ToList();
 

@@ -7,6 +7,7 @@ namespace BlazorOrderApp.Repositories
     public interface IOrderAnalysisRepository
     {
         Task<IEnumerable<日別受注金額Model>> Get日別受注金額Async(DateTime startDate, DateTime endDate);
+        Task<IEnumerable<日別受注金額Model>> Get週別受注金額Async(DateTime startDate, DateTime endDate);
         Task<IEnumerable<得意先別受注金額Model>> Get得意先別受注金額Async(DateTime startDate, DateTime endDate);
         Task<IEnumerable<商品別受注金額Model>> Get商品別受注金額Async(DateTime startDate, DateTime endDate);
     }
@@ -48,6 +49,49 @@ namespace BlazorOrderApp.Repositories
             var param = new
             {
                 startDate,
+                endDate
+            };
+            var list = await conn.QueryAsync<日別受注金額Model>(dataSql, param);
+
+            return list;
+        }
+
+        public async Task<IEnumerable<日別受注金額Model>> Get週別受注金額Async(DateTime startDate, DateTime endDate)
+        {
+            using var conn = new SqliteConnection(_connectionString);
+
+            // 1週間の開始は: 今日 - ((int)DateTime.Today.DayOfWeek + 1) % 7日
+            // つまり「(今日の曜日番号+1)%7」日進めると週の始まり
+            // 例: 今日が金曜(5) → 6日進めて土曜(6)
+            int todayWeekday = (int)DateTime.Today.DayOfWeek; // 0=日曜, ... 6=土曜
+            var weekStartOffset = (todayWeekday + 1) % 7;
+            var firstWeekStart = startDate.AddDays(weekStartOffset);
+
+            // 動的日付リスト生成＆ゼロ補完
+            var dataSql = @"
+                with recursive WeekList(受注日) as (
+                  select date(@firstWeekStart)
+                  union all
+                  select date(受注日, '+7 day')
+                    from WeekList
+                   where 受注日 < date(@endDate)
+                )
+                select
+                  WeekList.受注日,
+                  coalesce(sum(受注.合計金額), 0) as 受注金額
+                from
+                  WeekList
+                  left join 受注
+                    on date(受注.受注日) >= WeekList.受注日
+                   and date(受注.受注日) < date(WeekList.受注日, '+7 day')
+                group by
+                  WeekList.受注日
+                order by
+                  WeekList.受注日
+            ";
+            var param = new
+            {
+                firstWeekStart,
                 endDate
             };
             var list = await conn.QueryAsync<日別受注金額Model>(dataSql, param);
