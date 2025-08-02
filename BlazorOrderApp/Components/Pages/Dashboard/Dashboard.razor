@@ -1,35 +1,37 @@
 ﻿@page "/dashboard"
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
+@using Radzen
+@using Radzen.Blazor
 
 <div class="mb-3">
     <label>集計期間：</label>
     <div class="btn-group" role="group" aria-label="集計期間">
-        <button type="button"
-                class="btn btn-outline-secondary @(SelectedPeriod == "1w" ? "active" : "")"
-                @onclick='() => SelectedPeriod = "1w"'>
+        <RadzenButton ButtonStyle="ButtonStyle.Info"
+                      Class="@(SelectedPeriod == "1w" ? "active" : "")"
+                      Click="@(() => SelectedPeriod = "1w")">
             1週間
-        </button>
-        <button type="button"
-                class="btn btn-outline-secondary @(SelectedPeriod == "1m" ? "active" : "")"
-                @onclick='() => SelectedPeriod = "1m"'>
+        </RadzenButton>
+        <RadzenButton ButtonStyle="ButtonStyle.Info"
+                      Class="@(SelectedPeriod == "1m" ? "active" : "")"
+                      Click="@(() => SelectedPeriod = "1m")">
             1か月
-        </button>
-        <button type="button"
-                class="btn btn-outline-secondary @(SelectedPeriod == "3m" ? "active" : "")"
-                @onclick='() => SelectedPeriod = "3m"'>
+        </RadzenButton>
+        <RadzenButton ButtonStyle="ButtonStyle.Info"
+                      Class="@(SelectedPeriod == "3m" ? "active" : "")"
+                      Click="@(() => SelectedPeriod = "3m")">
             3か月
-        </button>
-        <button type="button"
-                class="btn btn-outline-secondary @(SelectedPeriod == "6m" ? "active" : "")"
-                @onclick='() => SelectedPeriod = "6m"'>
+        </RadzenButton>
+        <RadzenButton ButtonStyle="ButtonStyle.Info"
+                      Class="@(SelectedPeriod == "6m" ? "active" : "")"
+                      Click="@(() => SelectedPeriod = "6m")">
             6か月
-        </button>
-        <button type="button"
-                class="btn btn-outline-secondary @(SelectedPeriod == "1y" ? "active" : "")"
-                @onclick='() => SelectedPeriod = "1y"'>
+        </RadzenButton>
+        <RadzenButton ButtonStyle="ButtonStyle.Info"
+                      Class="@(SelectedPeriod == "1y" ? "active" : "")"
+                      Click="@(() => SelectedPeriod = "1y")">
             1年
-        </button>
+        </RadzenButton>
     </div>
 </div>
 
@@ -37,14 +39,15 @@
 <div style="min-width:100%; min-height:320px; width:100%; background:rgba(0,0,0,0.01);">
     @if (GraphData != null)
     {
-        <ApexChart TItem="日別受注金額Model" Height="320" @ref="chart">
-            <ApexPointSeries TItem="日別受注金額Model"
-                             Items="GraphData"
-                             Name="受注金額"
-                             SeriesType="SeriesType.Bar"
-                             XValue="e => e.受注日ラベル"
-                             YValue="e => e.受注金額" />
-        </ApexChart>
+        <RadzenChart>
+            <RadzenColumnSeries Data="@GraphData" CategoryProperty="受注日ラベル" Title="受注金額" LineType="LineType.Dashed" ValueProperty="受注金額">
+                <RadzenSeriesDataLabels Visible="false" />
+            </RadzenColumnSeries>
+            <RadzenValueAxis Formatter="@FormatAsJPY">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="金額 (円)" />
+            </RadzenValueAxis>
+        </RadzenChart>
     }
     else
     {
@@ -60,14 +63,12 @@
         <div style="min-width:100%; min-height:320px; width:100%; background:rgba(0,0,0,0.01);">
             @if (CustomerRanking != null)
             {
-                <ApexChart TItem="得意先別受注金額Model" Height="320" @ref="customerPieChart">
-                    <ApexPointSeries TItem="得意先別受注金額Model"
-                                     Items="CustomerRanking"
-                                     Name="受注金額"
-                                     SeriesType="SeriesType.Pie"
-                                     XValue="x => x.得意先名"
-                                     YValue="x => x.受注金額" />
-                </ApexChart>
+                <RadzenChart>
+                    <RadzenPieSeries Data="@CustomerRanking" Title="受注金額" CategoryProperty="得意先名" ValueProperty="受注金額">
+                        <RadzenSeriesDataLabels Visible="false" />
+                    </RadzenPieSeries>
+                    <RadzenLegend Position="LegendPosition.Right" />
+                </RadzenChart>
             }
             else
             {
@@ -81,14 +82,12 @@
         <div style="min-width:100%; min-height:320px; width:100%; background:rgba(0,0,0,0.01);">
             @if (ProductRanking != null)
             {
-                <ApexChart TItem="商品別受注金額Model" Height="320" @ref="productPieChart">
-                    <ApexPointSeries TItem="商品別受注金額Model"
-                                     Items="ProductRanking"
-                                     Name="受注金額"
-                                     SeriesType="SeriesType.Pie"
-                                     XValue="x => x.商品コード名称"
-                                     YValue="x => x.受注金額" />
-                </ApexChart>
+                <RadzenChart>
+                    <RadzenPieSeries Data="@ProductRanking" Title="受注金額" CategoryProperty="商品コード名称" ValueProperty="受注金額">
+                        <RadzenSeriesDataLabels Visible="false" />
+                    </RadzenPieSeries>
+                    <RadzenLegend Position="LegendPosition.Right" />
+                </RadzenChart>
             }
             else
             {
@@ -122,9 +121,14 @@
     private List<得意先別受注金額Model>? CustomerRanking;
     private List<商品別受注金額Model>? ProductRanking;
 
-    private ApexChart<日別受注金額Model>? chart;
-    private ApexChart<得意先別受注金額Model>? customerPieChart;
-    private ApexChart<商品別受注金額Model>? productPieChart;
+    private string FormatAsJPY(object value)
+    {
+        if (value is IConvertible convertible)
+        {
+            return $"{convertible.ToDecimal(System.Globalization.CultureInfo.InvariantCulture):#,##0} 円";
+        }
+        return value?.ToString() ?? "";
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -149,12 +153,8 @@
             GraphData = (await OrderAnalysisRepo.Get週別受注金額Async(startDate, endDate)).ToList();
         else
             GraphData = (await OrderAnalysisRepo.Get日別受注金額Async(startDate, endDate)).ToList();
-    
+
         CustomerRanking = (await OrderAnalysisRepo.Get得意先別受注金額Async(startDate, endDate)).ToList();
         ProductRanking = (await OrderAnalysisRepo.Get商品別受注金額Async(startDate, endDate)).ToList();
-
-        if (chart != null) await chart.UpdateSeriesAsync();
-        if (customerPieChart != null) await customerPieChart.UpdateSeriesAsync();
-        if (productPieChart != null) await productPieChart.UpdateSeriesAsync();
     }
 }

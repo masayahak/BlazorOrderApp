@@ -1,7 +1,7 @@
-using ApexCharts;
 using BlazorOrderApp.Components;
 using BlazorOrderApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +13,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddApplicationServices();
 
 // グラフ用
-builder.Services.AddApexCharts();
+builder.Services.AddRadzenComponents();
 
 // ----------- Cookie認証 --------------------------------
 // ログイン／ログアウト用のRazor Pages
