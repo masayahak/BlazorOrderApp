@@ -22,6 +22,7 @@
             <InputText id="keyword" @bind-Value="Keyword" class="form-control" autocomplete="off" />
         </div>
         <button class="btn btn-primary ms-3" @onclick="OnSearchAsync">検索</button>
+        <button class="btn btn-danger ms-3" @onclick="ThrowTestException">例外テスト</button>
         <button class="btn btn-success ms-auto" @onclick="OnAdd">＋追加</button>
     </div>
 </div>
@@ -109,6 +110,11 @@
     {
         var url = $"orders/edit/{受注ID}?StartDate={Uri.EscapeDataString(StartDate ?? "")}&EndDate={Uri.EscapeDataString(EndDate ?? "")}&Keyword={Uri.EscapeDataString(Keyword ?? "")}";
         Navigation.NavigateTo(url);
+    }
+
+    private void ThrowTestException()
+    {
+        throw new Exception("テスト例外: これは意図的なエラーです");
     }
 }
 

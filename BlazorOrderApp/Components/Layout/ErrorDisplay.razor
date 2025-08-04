@@ -18,9 +18,12 @@
 }
 else
 {
+    @* 本来はここでエラーログ出力など *@
     <div class="alert alert-danger">
         <strong>予期しないエラーが発生しました。</strong>
         <br />
-        @Exception?.Message
+        @System.Web.HttpUtility.HtmlEncode(Exception?.Message)
+        <br />
+        <button class="btn btn-primary mt-2" @onclick="() => Nav.NavigateTo(Nav.Uri, true)">再試行</button>
     </div>
 }
