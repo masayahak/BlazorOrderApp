@@ -77,12 +77,12 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAntiforgery();
 
 // 認証・認可
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseAntiforgery();
 app.MapStaticAssets();
 
 // ログイン／ログアウト用のRazor Pages のエンドポイント追加

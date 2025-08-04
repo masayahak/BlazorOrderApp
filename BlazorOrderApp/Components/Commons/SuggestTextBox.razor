@@ -139,6 +139,13 @@
         await OnSelect.InvokeAsync(item);
     }
 
+
+    public void Dispose()
+    {
+        debounceCts?.Cancel();
+        debounceCts?.Dispose();
+    }
+
     public class SuggestModel
     {
         public string Code { get; set; } = "";

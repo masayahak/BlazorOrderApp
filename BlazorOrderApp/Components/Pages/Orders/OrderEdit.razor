@@ -266,12 +266,10 @@ else
 
     private ValidationMessageStore? messageStore;
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override void OnParametersSet()
     {
-        if (firstRender && editContext != null)
-        {
-            messageStore = new ValidationMessageStore(editContext);
-        }
+        editContext = new EditContext(受注Model);
+        messageStore = new ValidationMessageStore(editContext);
     }
 
     // ==================================================
@@ -425,7 +423,8 @@ else
 
     private bool IsValid()
     {
-        if (editContext is null) return false;
+        if (editContext == null || messageStore == null) return false;
+        messageStore.Clear();
 
         // 標準的なValidation
         var isValid = editContext.Validate();
