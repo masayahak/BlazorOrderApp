@@ -37,14 +37,16 @@
     private string _input = "";
     private List<SuggestModel> SuggestList { get; set; } = new();
     private bool _isListClicked = false;
-
     private CancellationTokenSource? debounceCts;
 
     protected override void OnParametersSet()
     {
-        // 親から初期値だけ反映（手動変更時のみ）
-        if (string.IsNullOrEmpty(_input) && !string.IsNullOrEmpty(Value))
-            _input = Value;
+        // 親からのValueが変更された場合、_inputを強制的に同期
+        if (_input != Value)
+        {
+            _input = Value ?? "";
+            SuggestList.Clear(); // サジェストリストもクリア
+        }
     }
 
     private async Task OnFocus(FocusEventArgs e)

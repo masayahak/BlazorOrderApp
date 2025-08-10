@@ -65,7 +65,6 @@ else
         <hr class="my-4" />
         <div class="d-flex align-items-center mb-2">
             <h5 class="fw-bold text-primary mb-0 me-3">▶ 明細一覧</h5>
-            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="On明細追加">＋明細を追加</button>
         </div>
         <hr class="my-2" />
         <table class="table table-sm">
@@ -88,7 +87,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @for (int i = 0; i < 受注Model.明細一覧.Count; i++)
+                @for (int i = 0; i < OrderModelConst.MAX_受注明細_COUNT; i++)
                 {
                     var m = 受注Model.明細一覧[i];
                     <tr>
@@ -119,12 +118,11 @@ else
                             <input type="number"
                                    value="@m.数量"
                                    @onchange="e => On数量変更(m, e.Value)"
-                                   class="form-control text-end" required min="1" max="999" autocomplete="off" />
+                                   class="form-control text-end" min="0" max="999" autocomplete="off" />
                             <ValidationMessage For="() => m.数量" class="text-danger" />
-
                         </td>
                         <td class="text-center">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => On明細削除(m)">削除</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => On明細クリア(m)">クリア</button>
                         </td>
                     </tr>
                 }
@@ -186,7 +184,6 @@ else
   </div>
 </div>
 
-
 @* ------------ 商品コード入力ヘルプ用のモーダル ------------ *@
 <div class="modal fade" id="productCodeHelpModal" tabindex="-1" aria-labelledby="productCodeHelpModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -201,9 +198,6 @@ else
     </div>
     </div>
 </div>
-
-
-
 
 @code {
     [Inject]
@@ -249,13 +243,21 @@ else
                 editContext = new EditContext(受注Model);
             }
         }
+
+        // ----- 明細を10行に固定 -----
+        if (受注Model.明細一覧 == null)
+        {
+            受注Model.明細一覧 = new List<OrderDetailModel>();
+        }
+        while (受注Model.明細一覧.Count < 10)
+        {
+            受注Model.明細一覧.Add(new OrderDetailModel());
+        }
+
         // ----- 登録時 -----
-        if (受注Model.受注ID== 0 && (受注Model.明細一覧 == null || 受注Model.明細一覧.Count == 0))
+        if (受注Model.受注ID == 0)
         {
             受注Model.受注日 = DateTime.Today;
-
-            // 明細を1行初期表示
-            On明細追加();
         }
 
         // 得意先は最初に全件読み込み
@@ -382,23 +384,17 @@ else
     }
 
     // ==================================================
-    // 明細の追加／削除
+    // 明細のクリア
     // ==================================================
-    private void On明細追加()
+    private void On明細クリア(OrderDetailModel m)
     {
         if (受注Model?.明細一覧 == null) return;
-        if (受注Model.明細一覧.Count < 10)
+        var index = 受注Model.明細一覧.IndexOf(m);
+        if (index >= 0)
         {
-            受注Model.明細一覧.Add(new OrderDetailModel());
-            StateHasChanged();
+            受注Model.明細一覧[index] = new OrderDetailModel();
+            再計算合計金額();
         }
-    }
-
-    private void On明細削除(OrderDetailModel m)
-    {
-        if (受注Model?.明細一覧 == null) return;
-        受注Model.明細一覧.Remove(m);
-        再計算合計金額();
     }
 
     private void ShowDeleteConfirm() => showDeleteConfirm = true;
@@ -438,10 +434,25 @@ else
         // 明細すべてに対してチェック
         foreach (var (m, i) in 受注Model.明細一覧.Select((x, idx) => (x, idx)))
         {
-            // 商品名が設定されていない＝一致していない
-            if (string.IsNullOrWhiteSpace(m.商品名))
+            // 商品コードが入力されている場合のみ検証
+            if (!string.IsNullOrWhiteSpace(m.商品コード))
             {
-                messageStore?.Add(() => 受注Model.明細一覧[i].商品コード, "商品が存在しません");
+                if (string.IsNullOrWhiteSpace(m.商品名))
+                {
+                    messageStore?.Add(() => 受注Model.明細一覧[i].商品コード, "商品が存在しません");
+                }
+                if (m.数量 <= 0)
+                {
+                    messageStore?.Add(() => 受注Model.明細一覧[i].数量, "数量は1以上を入力してください");
+                }
+            }
+            else
+            {
+                // 商品コード未入力 かつ 数量入力はエラー
+                if (m.数量 != 0)
+                {
+                    messageStore?.Add(() => 受注Model.明細一覧[i].商品コード, "商品コードを入力してください");
+                }
             }
         }
 

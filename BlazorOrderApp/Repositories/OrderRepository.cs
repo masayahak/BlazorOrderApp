@@ -115,6 +115,7 @@ namespace BlazorOrderApp.Repositories
 
 
         // Insert
+        // OrderRepository.cs
         public async Task AddAsync(OrderModel model)
         {
             using var conn = new SqliteConnection(_connectionString);
@@ -124,8 +125,6 @@ namespace BlazorOrderApp.Repositories
             try
             {
                 model.Version = 1;
-
-                // 合計金額の再計算（任意）
                 model.合計金額 = model.明細一覧.Sum(x => x.単価 * x.数量);
 
                 // 受注テーブル
@@ -136,12 +135,12 @@ namespace BlazorOrderApp.Repositories
                 ";
                 model.受注ID = (int)(await conn.ExecuteScalarAsync<long>(sql1, model, tran));
 
-                // 受注明細テーブル
+                // 受注明細テーブル（商品コードが入力されているもののみ）
                 var sql2 = @"
                     insert into 受注明細 (受注ID, 商品コード, 商品名, 単価, 数量)
                     values (@受注ID, @商品コード, @商品名, @単価, @数量)
                 ";
-                foreach (var 明細 in model.明細一覧)
+                foreach (var 明細 in model.明細一覧.Where(m => !string.IsNullOrWhiteSpace(m.商品コード)))
                 {
                     明細.受注ID = model.受注ID;
                     await conn.ExecuteAsync(sql2, 明細, tran);
@@ -179,17 +178,18 @@ namespace BlazorOrderApp.Repositories
                 var rows = await conn.ExecuteAsync(sql1, model, tran);
                 if (rows == 0)
                 {
-                    // 他ユーザーが既に更新済み
                     throw new DBConcurrencyException("他で更新されています。再読み込みしてください。");
                 }
 
-                // 紐づく受注明細はいったん全て削除し、新しい明細を全部INSERT
+                // 紐づく受注明細をいったん全て削除
                 conn.Execute("delete from 受注明細 where 受注ID = @受注ID", new { model.受注ID }, tran);
+
+                // 新しい明細をINSERT（商品コードが入力されているもののみ）
                 var sql2 = @"
                     insert into 受注明細 (受注ID, 商品コード, 商品名, 単価, 数量)
                     values (@受注ID, @商品コード, @商品名, @単価, @数量)
                 ";
-                foreach (var 明細 in model.明細一覧)
+                foreach (var 明細 in model.明細一覧.Where(m => !string.IsNullOrWhiteSpace(m.商品コード)))
                 {
                     明細.受注ID = model.受注ID;
                     await conn.ExecuteAsync(sql2, 明細, tran);
