@@ -68,6 +68,9 @@
                         <RadzenSeriesDataLabels Visible="false" />
                     </RadzenPieSeries>
                     <RadzenLegend Position="LegendPosition.Right" />
+                    <RadzenValueAxis Formatter="@FormatAsJPY">
+                        <RadzenAxisTitle Text="金額 (円)" />
+                    </RadzenValueAxis>
                 </RadzenChart>
             }
             else
@@ -87,6 +90,9 @@
                         <RadzenSeriesDataLabels Visible="false" />
                     </RadzenPieSeries>
                     <RadzenLegend Position="LegendPosition.Right" />
+                    <RadzenValueAxis Formatter="@FormatAsJPY">
+                        <RadzenAxisTitle Text="金額 (円)" />
+                    </RadzenValueAxis>
                 </RadzenChart>
             }
             else
@@ -140,7 +146,7 @@
         var endDate = DateTime.Today;
         var startDate = SelectedPeriod switch
         {
-            "1w" => endDate.AddDays(-7),
+            "1w" => endDate.AddDays(-6),
             "1m" => endDate.AddMonths(-1),
             "3m" => endDate.AddMonths(-3),
             "6m" => endDate.AddMonths(-6),

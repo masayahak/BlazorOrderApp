@@ -13,8 +13,7 @@
 <button type="button"
         class="btn btn-link ms-2 p-0"
         style="color:gray; text-decoration:none;"
-        data-bs-toggle="modal"
-        data-bs-target="#helpModal">
+        @onclick="ShowHelpModal">
     <i class="bi bi-question-circle-fill fs-4"></i>
 </button>
 
@@ -75,8 +74,7 @@ else
                         <button type="button"
                                 class="btn btn-link ms-1 p-0"
                                 style="color:white; text-decoration:none;"
-                                data-bs-toggle="modal"
-                                data-bs-target="#productCodeHelpModal">
+                                @onclick="ShowProductCodeHelpModal">
                             <i class="bi bi-question-circle-fill"></i>
                         </button>
                     </th>
@@ -165,40 +163,53 @@ else
 }
 
 @* ------------ 機能説明用のモーダル ------------ *@
-<div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="helpModalLabel">サジェスト機能について</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
-      </div>
-      <div class="modal-body">
-        <strong>■ 得意先のサジェスト</strong><br />
-        ・分母の件数が少なくデフォルトでサジェストを表示するパターンのサンプル<br />
-        （内部的にはGETで全件取得している）<br /><br />
-        <strong>■ 商品のサジェスト</strong><br />
-        ・分母の件数が多く、入力条件から都度DBを検索するパターンのサンプル<br />
-        （サンプルでは2文字以上の入力で、DB検索を実行している）<br />
-      </div>
+@if (showHelpModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" aria-labelledby="helpModalLabel" aria-modal="true" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="helpModalLabel">サジェスト機能について</h5>
+                    <button type="button" class="btn-close" @onclick="HideHelpModal" aria-label="閉じる"></button>
+                </div>
+                <div class="modal-body">
+                    <strong>■ 得意先のサジェスト</strong><br />
+                    ・分母の件数が少なくデフォルトでサジェストを表示するパターンのサンプル<br />
+                    （内部的にはGETで全件取得している）<br /><br />
+                    <strong>■ 商品のサジェスト</strong><br />
+                    ・分母の件数が多く、入力条件から都度DBを検索するパターンのサンプル<br />
+                    （サンプルでは2文字以上の入力で、DB検索を実行している）<br />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HideHelpModal">閉じる</button>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
+}
 
 @* ------------ 商品コード入力ヘルプ用のモーダル ------------ *@
-<div class="modal fade" id="productCodeHelpModal" tabindex="-1" aria-labelledby="productCodeHelpModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-    <div class="modal-content">
-        <div class="modal-header">
-        <h5 class="modal-title" id="productCodeHelpModalLabel">商品コード入力について</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
-        </div>
-        <div class="modal-body">
-        商品コードは2文字以上入力すると候補一覧を表示します。
+@if (showProductCodeHelpModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" aria-labelledby="productCodeHelpModalLabel" aria-modal="true" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productCodeHelpModalLabel">商品コード入力について</h5>
+                    <button type="button" class="btn-close" @onclick="HideProductCodeHelpModal" aria-label="閉じる"></button>
+                </div>
+                <div class="modal-body">
+                    商品コードは2文字以上入力すると候補一覧を表示します。
+                    登録されている商品を商品マスタで確認するか、
+                    ここでは「RX」または「MS」と入力してみてください。
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HideProductCodeHelpModal">閉じる</button>
+                </div>
+            </div>
         </div>
     </div>
-    </div>
-</div>
-
+}
 @code {
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
@@ -222,6 +233,8 @@ else
     private EditContext? editContext;
 
     private bool showDeleteConfirm = false;
+    private bool showHelpModal = false;
+    private bool showProductCodeHelpModal = false;
 
     // DB検索した結果、存在しているなら編集モード
     private bool IsEdit => (受注Model?.受注ID ?? 0) > 0;
@@ -399,6 +412,12 @@ else
 
     private void ShowDeleteConfirm() => showDeleteConfirm = true;
     private void HideDeleteConfirm() => showDeleteConfirm = false;
+
+    private void ShowHelpModal() => showHelpModal = true;
+    private void HideHelpModal() => showHelpModal = false;
+
+    private void ShowProductCodeHelpModal() => showProductCodeHelpModal = true;
+    private void HideProductCodeHelpModal() => showProductCodeHelpModal = false;
 
     // ==================================================
     // データの登録・修正・削除
