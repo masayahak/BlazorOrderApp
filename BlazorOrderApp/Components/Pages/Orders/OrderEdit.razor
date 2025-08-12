@@ -1,10 +1,10 @@
 ﻿@page "/orders/edit/"
 @page "/orders/edit/{受注ID:int?}"
 
-@using BlazorOrderApp.Components.Commons 
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
-@using static BlazorOrderApp.Components.Commons.SuggestTextBox
+@using BlazorOrderApp.Components.Commons 
+@inherits BlazorOrderApp.Components.Commons.FocusNavigableComponent
 @attribute [Authorize]
 
 <h3 class="d-inline-block">
@@ -23,7 +23,7 @@
 }
 else
 {
-    <EditForm EditContext="editContext" OnSubmit="OnSubmit">
+    <EditForm EditContext="editContext">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
@@ -34,7 +34,9 @@ else
         <div class="row mb-2">
             <div class="col-md-2">
                 <label for="受注日" class="form-label">受注日</label>
-                <InputDate id="受注日" @bind-Value="受注Model.受注日" class="form-control" />
+                <InputDate id="受注日" @bind-Value="受注Model.受注日" class="form-control" 
+                    data-tab="10" @onkeydown="@(e => HandleKeyDown(e, 10))"
+                />
             </div>
             <div class="col-md-4 position-relative">
                 <label for="得意先名" class="form-label">得意先名</label>
@@ -49,7 +51,9 @@ else
                     StartSearchChars=0
                     FetchSuggestions="Fetch得意先サジェスト"
                     OnSelect="On得意先Select"
-                    DisplayValueSelector="@(item => item.Name)" />
+                    DisplayValueSelector="@(item => item.Name)" 
+                    DataTab="20"
+                    />
                 <ValidationMessage For="() => 受注Model.得意先名" class="text-danger" />
                 <input type="hidden" value="@受注Model.得意先ID" />
             </div>
@@ -88,6 +92,7 @@ else
                 @for (int i = 0; i < OrderModelConst.MAX_受注明細_COUNT; i++)
                 {
                     var m = 受注Model.明細一覧[i];
+                    var baseTab = 100 + i*10;  // 行ごとに10刻みで確保
                     <tr>
                         <td>
                             <SuggestTextBox InputClass="form-control"
@@ -102,6 +107,7 @@ else
                                             FetchSuggestions="Fetch商品サジェスト"
                                             OnSelect="@(item => On商品Select(item, m))"
                                             DisplayValueSelector="@(item => item.Code)" 
+                                            DataTab="@(@baseTab + 1)"
                                             />
                             <ValidationMessage For="() => m.商品コード" class="text-danger" />
                         </td>
@@ -116,7 +122,9 @@ else
                             <input type="number"
                                    value="@m.数量"
                                    @onchange="e => On数量変更(m, e.Value)"
-                                   class="form-control text-end" min="0" max="999" autocomplete="off" />
+                                   class="form-control text-end" min="0" max="999" autocomplete="off" 
+                                   data-tab="@(@baseTab + 2)" @onkeydown="@(e => HandleKeyDown(e, baseTab + 2))"
+                                   />
                             <ValidationMessage For="() => m.数量" class="text-danger" />
                         </td>
                         <td class="text-center">
@@ -143,7 +151,7 @@ else
                 <div style="width: 120px;"></div>
             }
             <div class="d-flex gap-3">
-                <button type="submit" class="btn btn-primary px-5">保存</button>
+                <button type="button" class="btn btn-primary px-5" @onclick="OnSubmit">保存</button>
                 <button type="button" class="btn btn-secondary px-5" @onclick="OnCancel">戻る</button>
             </div>
         </div>
@@ -501,4 +509,5 @@ else
         var url = $"orders/?StartDate={Uri.EscapeDataString(StartDate ?? "")}&EndDate={Uri.EscapeDataString(EndDate ?? "")}&Keyword={Uri.EscapeDataString(Keyword ?? "")}";
         Navigation.NavigateTo(url);
     }
+
 }

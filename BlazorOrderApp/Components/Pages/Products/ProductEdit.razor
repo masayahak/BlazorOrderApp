@@ -4,6 +4,7 @@
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
 @using Microsoft.Data.Sqlite;
+@inherits BlazorOrderApp.Components.Commons.FocusNavigableComponent
 @attribute [Authorize(Roles = "Administrator")]
 
 <h3>商品マスタ @((isEdit ? "修正" : "追加"))</h3>
@@ -12,7 +13,7 @@
 {
     <div class="alert alert-danger mb-2">@errorMessage</div>
 }
-<EditForm Model="model" OnValidSubmit="OnSubmit">
+<EditForm Model="model">
     <DataAnnotationsValidator />
 
     <div class="row mb-2">
@@ -23,14 +24,16 @@
                 <InputText id="商品コード" 
                         @bind-Value="model.商品コード"
                         class="form-control readonly-field" style="width:160px;"
-                        Disabled />
+                        Disabled
+                        data-tab="10" @onkeydown="@(e => HandleKeyDown(e, 10))" />
     }
             else
             {
                 <InputText id="商品コード" required 
                         @bind-Value="model.商品コード"
                         class="form-control" style="width:160px;"
-                        autocomplete="off" />
+                        autocomplete="off" 
+                        data-tab="10" @onkeydown="@(e => HandleKeyDown(e, 10))" />
                 <ValidationMessage For="() => model.商品コード" />
             }
         </div>
@@ -39,7 +42,8 @@
             <InputText id="商品名" required 
                        @bind-Value="model.商品名"
                        class="form-control" style="width:320px;"
-                       autocomplete="off" />
+                       autocomplete="off"
+                       data-tab="20" @onkeydown="@(e => HandleKeyDown(e, 20))" />
             <ValidationMessage For="() => model.商品名" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
@@ -47,7 +51,8 @@
             <InputNumber id="単価" required min="0" max="999999999" step="1"
                          @bind-Value="model.単価"
                          class="form-control text-end" style="width:160px;" 
-                         autocomplete="off" />
+                         autocomplete="off"
+                         data-tab="30" @onkeydown="@(e => HandleKeyDown(e, 30))" />
             <ValidationMessage For="() => model.単価" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
@@ -55,7 +60,8 @@
             <InputText id="備考" 
                        @bind-Value="model.備考"
                        class="form-control"
-                       autocomplete="off" />
+                       autocomplete="off"
+                       data-tab="40" @onkeydown="@(e => HandleKeyDown(e, 40))" />
         </div>
     </div>
 
@@ -70,7 +76,7 @@
             <div style="width: 120px;"></div>
         }
         <div class="d-flex gap-3">
-            <button type="submit" class="btn btn-primary px-5">保存</button>
+            <button type="button" class="btn btn-primary px-5" @onclick="OnSubmit">保存</button>
             <button type="button" class="btn btn-secondary px-5" @onclick="OnBack">戻る</button>
         </div>
     </div>

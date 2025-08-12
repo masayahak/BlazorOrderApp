@@ -3,12 +3,13 @@
 
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
+@inherits BlazorOrderApp.Components.Commons.FocusNavigableComponent
 @attribute [Authorize(Roles = "Administrator")]
 
 <h3>得意先マスタ @((isEdit ? "修正" : "追加"))</h3>
 
 
-<EditForm Model="model" OnValidSubmit="OnSubmit">
+<EditForm Model="model">
     <DataAnnotationsValidator />
 
     <div class="row mb-2">
@@ -17,7 +18,8 @@
             <InputText id="得意先名" required
                        @bind-Value="model.得意先名"
                        class="form-control" style="width:320px;"
-                       autocomplete="off" />
+                       autocomplete="off" 
+                       data-tab="10" @onkeydown="@(e => HandleKeyDown(e, 10))" />
             <ValidationMessage For="() => model.得意先名" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
@@ -25,7 +27,8 @@
             <InputText id="電話番号" required
                        @bind-Value="model.電話番号"
                        class="form-control" style="width:320px;"
-                       autocomplete="off" />
+                       autocomplete="off" 
+                       data-tab="20" @onkeydown="@(e => HandleKeyDown(e, 20))" />
             <ValidationMessage For="() => model.電話番号" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
@@ -33,7 +36,8 @@
             <InputText id="備考"
                        @bind-Value="model.備考"
                        class="form-control"
-                       autocomplete="off" />
+                       autocomplete="off" 
+                       data-tab="30" @onkeydown="@(e => HandleKeyDown(e, 30))" />
         </div>
     </div>
 
@@ -48,7 +52,7 @@
             <div style="width: 120px;"></div>
         }
         <div class="d-flex gap-3">
-            <button type="submit" class="btn btn-primary px-5">保存</button>
+            <button type="button" class="btn btn-primary px-5" @onclick="OnSubmit">保存</button>
             <button type="button" class="btn btn-secondary px-5" @onclick="OnBack">戻る</button>
         </div>
     </div>

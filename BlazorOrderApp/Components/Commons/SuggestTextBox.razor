@@ -8,11 +8,12 @@
                @onfocus="OnFocus"
                @oninput="OnInput"
                @onkeydown="OnKeyDown"
+               data-tab="@DataTab"
                @onblur="OnBlur"
                autocomplete="off" />
     <div class="list-group position-absolute w-100" style="z-index:10;"
          hidden="@(SuggestList.Count == 0)"
-        @onmousedown="@(() => _isListClicked = true)">
+         @onmousedown="@(() => _isListClicked = true)">
         @foreach (var item in SuggestList)
         {
             <button type="button" class="list-group-item list-group-item-action"
@@ -24,7 +25,11 @@
 </div>
 
 @code {
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+
     [Parameter] public string? Id { get; set; }
+    [Parameter] public int? DataTab { get; set; }
     [Parameter] public string Value { get; set; } = "";
     [Parameter] public string Placeholder { get; set; } = "";
     [Parameter] public string InputClass { get; set; } = "form-control";
@@ -107,9 +112,16 @@
         }
     }
 
-    // ESCキーでリストを閉じる
     private async Task OnKeyDown(KeyboardEventArgs e)
     {
+        // Enterでフォーカス制御
+        if (e.Key == "Enter")
+        {
+            await JS.InvokeVoidAsync("focusByTabOrder", DataTab);
+            return;
+        }
+
+        // ESCキーでリストを閉じる
         if (e.Key == "Escape")
         {
             SuggestList.Clear();
@@ -139,6 +151,9 @@
         SuggestList.Clear();
         StateHasChanged();
         await OnSelect.InvokeAsync(item);
+
+        // フォーカス制御
+        await JS.InvokeVoidAsync("focusByTabOrder", DataTab);
     }
 
 
