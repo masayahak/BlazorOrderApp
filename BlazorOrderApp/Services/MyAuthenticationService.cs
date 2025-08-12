@@ -19,12 +19,12 @@ namespace BlazorOrderApp.Services
             var claims = new List<Claim>();
 
             // 本来の認証判定はもっと複雑だが、ここではテスト用にシンプルに認証
-            if (loginUser.UserName == "admin" && loginUser.Password == "admin")
+            if (loginUser.UserName == "admin" && loginUser.Password == "admin765")
             {
                 claims.Add(new Claim(ClaimTypes.Name, loginUser.UserName));
                 claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
             }
-            else if (loginUser.UserName == "test" && loginUser.Password == "test")
+            else if (loginUser.UserName == "test" && loginUser.Password == "test326")
             {
                 claims.Add(new Claim(ClaimTypes.Name, loginUser.UserName));
                 claims.Add(new Claim(ClaimTypes.Role, "User"));
