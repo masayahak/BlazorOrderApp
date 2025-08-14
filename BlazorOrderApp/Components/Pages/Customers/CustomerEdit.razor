@@ -3,13 +3,14 @@
 
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
-@inherits BlazorOrderApp.Components.Commons.FocusNavigableComponent
 @attribute [Authorize(Roles = "Administrator")]
+@inherits BlazorOrderApp.Components.Commons.InitialFocusComponent
 
 <h3>得意先マスタ @((isEdit ? "修正" : "追加"))</h3>
 
 
-<EditForm Model="model">
+@* Enterキーでフォーカス制御したいので、FormのOnSubmitは利用できない *@
+<EditForm EditContext="@editContext">
     <DataAnnotationsValidator />
 
     <div class="row mb-2">
@@ -19,7 +20,7 @@
                        @bind-Value="model.得意先名"
                        class="form-control" style="width:320px;"
                        autocomplete="off" 
-                       data-tab="10" @onkeydown="@(e => HandleKeyDown(e, 10))" />
+                       data-tab="10" />
             <ValidationMessage For="() => model.得意先名" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
@@ -28,7 +29,7 @@
                        @bind-Value="model.電話番号"
                        class="form-control" style="width:320px;"
                        autocomplete="off" 
-                       data-tab="20" @onkeydown="@(e => HandleKeyDown(e, 20))" />
+                       data-tab="20" />
             <ValidationMessage For="() => model.電話番号" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
@@ -37,7 +38,7 @@
                        @bind-Value="model.備考"
                        class="form-control"
                        autocomplete="off" 
-                       data-tab="30" @onkeydown="@(e => HandleKeyDown(e, 30))" />
+                       data-tab="30" />
         </div>
     </div>
 
@@ -87,8 +88,9 @@
     public string? keyword { get; set; }
 
     private CustomerModel model = new();
-    private bool isEdit => !(得意先ID == null);
+    private EditContext editContext = default!;
 
+    private bool isEdit => !(得意先ID == null);
     private bool showDeleteConfirm = false;
 
     protected override async Task OnInitializedAsync()
@@ -105,10 +107,17 @@
             // 追加時：初期化
             model = new CustomerModel();
         }
+
+        // OnSubmitで自前でValidationするために必要
+        editContext = new EditContext(model);
     }
 
     private async Task OnSubmit()
     {
+        // OnSubmitで自前でValidation
+        // （FormのOnSubumitはエンターキーでフォーカス制御しているので使えない）
+        if (!editContext.Validate()) return;
+
         if (isEdit)
         {
             await 得意先Repository.UpdateAsync(model);

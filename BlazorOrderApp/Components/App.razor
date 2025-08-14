@@ -17,9 +17,9 @@
 
 <body>
     <Routes @rendermode="InteractiveServer" />
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src='@Assets["lib/bootstrap/dist/js/bootstrap.bundle.min.js"]'></script>
+    <script src='@Assets["timeout.js"]'></script>
     <script src="_framework/blazor.web.js"></script>
-    <script src="timeout.js"></script>
     <script src="focusByTabOrder.js"></script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
     <RadzenComponents @rendermode="InteractiveServer" />

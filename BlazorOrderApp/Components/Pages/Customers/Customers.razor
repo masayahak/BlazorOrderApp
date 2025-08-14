@@ -1,8 +1,8 @@
 ﻿@page "/customers"
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
-@inherits BlazorOrderApp.Components.Commons.FocusNavigableComponent
 @attribute [Authorize(Roles = "Administrator")]
+@inherits BlazorOrderApp.Components.Commons.InitialFocusComponent
 
 
 <h3>得意先マスタ一覧</h3>
@@ -11,7 +11,7 @@
     <div>
         <input type="text" class="form-control" placeholder="キーワード（得意先名/電話番号）"
                @bind="keyword" @bind:event="oninput" style="width: 300px; display:inline-block;"
-               data-tab="10" @onkeydown="@(e => HandleKeyDown(e, 10))" />
+               data-tab="10" />
     </div>
     <button class="btn btn-primary ms-2" @onclick="Search">検索</button>
 

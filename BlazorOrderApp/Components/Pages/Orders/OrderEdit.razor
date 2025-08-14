@@ -4,8 +4,8 @@
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
 @using BlazorOrderApp.Components.Commons 
-@inherits BlazorOrderApp.Components.Commons.FocusNavigableComponent
 @attribute [Authorize]
+@inherits BlazorOrderApp.Components.Commons.InitialFocusComponent
 
 <h3 class="d-inline-block">
     受注 @((IsEdit ? "修正" : "追加"))
@@ -23,7 +23,8 @@
 }
 else
 {
-    <EditForm EditContext="editContext">
+    @* Enterキーでフォーカス制御したいので、FormのOnSubmitは利用できない *@
+    <EditForm EditContext="@editContext">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
@@ -35,8 +36,7 @@ else
             <div class="col-md-2">
                 <label for="受注日" class="form-label">受注日</label>
                 <InputDate id="受注日" @bind-Value="受注Model.受注日" class="form-control" 
-                    data-tab="10" @onkeydown="@(e => HandleKeyDown(e, 10))"
-                />
+                    data-tab="10" />
             </div>
             <div class="col-md-4 position-relative">
                 <label for="得意先名" class="form-label">得意先名</label>
@@ -123,8 +123,7 @@ else
                                    value="@m.数量"
                                    @onchange="e => On数量変更(m, e.Value)"
                                    class="form-control text-end" min="0" max="999" autocomplete="off" 
-                                   data-tab="@(@baseTab + 2)" @onkeydown="@(e => HandleKeyDown(e, baseTab + 2))"
-                                   />
+                                   data-tab="@(@baseTab + 2)" />
                             <ValidationMessage For="() => m.数量" class="text-danger" />
                         </td>
                         <td class="text-center">
@@ -137,7 +136,7 @@ else
 
         <div class="mb-2">
             <label class="form-label">備考</label>
-            <InputTextArea @bind-Value="受注Model.備考" class="form-control" />
+            <InputTextArea @bind-Value="受注Model.備考" class="form-control" data-tab="1000" />
         </div>
 
         @* 実行ボタン *@
@@ -238,7 +237,7 @@ else
     public string? Keyword { get; set; }
 
     private OrderModel 受注Model = new();
-    private EditContext? editContext;
+    private EditContext editContext = default!;
 
     private bool showDeleteConfirm = false;
     private bool showHelpModal = false;
@@ -261,7 +260,6 @@ else
             if (item != null)
             {
                 受注Model = item;
-                editContext = new EditContext(受注Model);
             }
         }
 
@@ -280,6 +278,9 @@ else
         {
             受注Model.受注日 = DateTime.Today;
         }
+
+        // OnSubmitで自前でValidationするために必要
+        editContext = new EditContext(受注Model);
 
         // 得意先は最初に全件読み込み
         得意先全件 = await 得意先Repository.GetAllAsync();

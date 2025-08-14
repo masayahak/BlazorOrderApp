@@ -4,8 +4,8 @@
 @using BlazorOrderApp.Models
 @using BlazorOrderApp.Repositories
 @using Microsoft.Data.Sqlite;
-@inherits BlazorOrderApp.Components.Commons.FocusNavigableComponent
 @attribute [Authorize(Roles = "Administrator")]
+@inherits BlazorOrderApp.Components.Commons.InitialFocusComponent
 
 <h3>商品マスタ @((isEdit ? "修正" : "追加"))</h3>
 
@@ -13,7 +13,9 @@
 {
     <div class="alert alert-danger mb-2">@errorMessage</div>
 }
-<EditForm Model="model">
+
+@* Enterキーでフォーカス制御したいので、FormのOnSubmitは利用できない *@
+<EditForm EditContext="@editContext">
     <DataAnnotationsValidator />
 
     <div class="row mb-2">
@@ -25,15 +27,15 @@
                         @bind-Value="model.商品コード"
                         class="form-control readonly-field" style="width:160px;"
                         Disabled
-                        data-tab="10" @onkeydown="@(e => HandleKeyDown(e, 10))" />
+                           data-tab="10" />
     }
             else
             {
                 <InputText id="商品コード" required 
                         @bind-Value="model.商品コード"
                         class="form-control" style="width:160px;"
-                        autocomplete="off" 
-                        data-tab="10" @onkeydown="@(e => HandleKeyDown(e, 10))" />
+                        autocomplete="off"
+                           data-tab="10" />
                 <ValidationMessage For="() => model.商品コード" />
             }
         </div>
@@ -43,7 +45,7 @@
                        @bind-Value="model.商品名"
                        class="form-control" style="width:320px;"
                        autocomplete="off"
-                       data-tab="20" @onkeydown="@(e => HandleKeyDown(e, 20))" />
+                       data-tab="20" />
             <ValidationMessage For="() => model.商品名" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
@@ -52,7 +54,7 @@
                          @bind-Value="model.単価"
                          class="form-control text-end" style="width:160px;" 
                          autocomplete="off"
-                         data-tab="30" @onkeydown="@(e => HandleKeyDown(e, 30))" />
+                         data-tab="30" />
             <ValidationMessage For="() => model.単価" class="text-danger" />
         </div>
         <div class="mb-3 d-flex align-items-center">
@@ -61,7 +63,7 @@
                        @bind-Value="model.備考"
                        class="form-control"
                        autocomplete="off"
-                       data-tab="40" @onkeydown="@(e => HandleKeyDown(e, 40))" />
+                       data-tab="40" />
         </div>
     </div>
 
@@ -111,8 +113,9 @@
     public string? keyword { get; set; }
 
     private ProductModel model = new();
-    private bool isEdit => !string.IsNullOrEmpty(商品コード);
+    private EditContext editContext = default!;
 
+    private bool isEdit => !string.IsNullOrEmpty(商品コード);
     private bool showDeleteConfirm = false;
 
     protected override async Task OnInitializedAsync()
@@ -129,11 +132,18 @@
             // 追加時：初期化
             model = new ProductModel();
         }
+
+        // OnSubmitで自前でValidationするために必要
+        editContext = new EditContext(model);
     }
 
     private string? errorMessage = null;
     private async Task OnSubmit()
     {
+        // OnSubmitで自前でValidation
+        // （FormのOnSubumitはエンターキーでフォーカス制御しているので使えない）
+        if (!editContext.Validate()) return;
+
         errorMessage = null;
         try
         {
