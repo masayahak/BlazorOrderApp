@@ -1,4 +1,5 @@
 using BlazorOrderApp.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace BlazorOrderApp.Pages
@@ -9,10 +10,10 @@ namespace BlazorOrderApp.Pages
         public LogoutModel(MyAuthenticationService authService)
             => _authService = authService;
 
-        public async Task OnGetAsync()
+        public async Task<IActionResult> OnGetAsync()
         {
             await _authService.LogoutAsync();
-            // 画面表示後、metaタグで /login に遷移
+            return RedirectToPage("/login");
         }
     }
 }

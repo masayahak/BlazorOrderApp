@@ -1,0 +1,5 @@
+﻿@inject NavigationManager Nav
+@code {
+    protected override void OnParametersSet()
+        => Nav.NavigateTo("/login?expired=1", forceLoad: true);
+}

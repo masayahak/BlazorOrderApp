@@ -26,7 +26,8 @@ namespace BlazorOrderApp.Pages
         {
             // expired=1 のときだけ true
             Expired = Request.Query["expired"] == "1";
-            await _authService.LogoutAsync();
+            if (Expired)
+                await _authService.LogoutAsync();
             return Page();
         }
 

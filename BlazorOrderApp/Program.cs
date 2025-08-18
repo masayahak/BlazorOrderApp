@@ -1,13 +1,13 @@
 using BlazorOrderApp.Components;
 using BlazorOrderApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components.Authorization;
 using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+builder.Services.AddCascadingAuthenticationState();
 
 // DI
 builder.Services.AddApplicationServices();
@@ -21,43 +21,25 @@ builder.Services.AddRazorPages();
 
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+    .AddCookie(o =>
     {
-        // 20分で自動的にログアウト
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
-        // アクセスごとに延長
-        options.SlidingExpiration = true;
-
-        options.LoginPath = "/login";
-        options.Events.OnRedirectToLogin = context =>
-        {
-            // 直接アクセス判定（Refererが無い、または空の場合は直接アクセスとみなす）
-            var referer = context.Request.Headers.Referer;
-            var hasReferer = !string.IsNullOrWhiteSpace(referer);
-
-            // クエリ文字列にexpiredが無い、かつ直接アクセスではないリダイレクトは全てタイムアウト扱い
-            var redirectUri = context.RedirectUri;
-            if (!redirectUri.Contains("expired"))
-            {
-                var uri = new UriBuilder(redirectUri);
-                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-                query["expired"] = hasReferer ? "1" : "0";
-                uri.Query = query.ToString();
-                context.Response.Redirect(uri.ToString());
-            }
-            else
-            {
-                context.Response.Redirect(redirectUri);
-            }
-            return Task.CompletedTask;
-        };
+        // タイムアウトはサーバー側で管理するので余裕を持たせる
+        o.ExpireTimeSpan = TimeSpan.FromHours(10);
+        o.LoginPath = "/login";
+        o.AccessDeniedPath = "/login";
     });
+// appsettingのタイムアウト設定
+builder.Services.Configure<IdleTimeoutOptions>(
+    builder.Configuration.GetSection("IdleTimeout"));
 
-
-builder.Services.AddCascadingAuthenticationState();
-
+// 独自認証判定（デモ用簡易版）
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<MyAuthenticationService>();
+
+builder.Services.AddAuthorization();
+builder.Services.AddSingleton<UserActivityService>(); // 活動記録
+// サーバー側でCookieセッションの定期監視
+builder.Services.AddScoped<AuthenticationStateProvider, CookieRevalidatingAuthStateProvider>();
 // -------------------------------------------------------
 
 // 詳細なエラーを有効化

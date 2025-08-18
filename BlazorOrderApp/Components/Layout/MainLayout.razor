@@ -1,4 +1,10 @@
-﻿@inherits LayoutComponentBase
+﻿@using BlazorOrderApp.Services
+@using Radzen
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject UserActivityService Activity
+@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Nav
 
 <div class="page">
     <div class="sidebar">
@@ -20,11 +26,18 @@
 
         <article class="content px-4">
             <ErrorBoundary>
-                <!-- 正常系 -->
+                @* 正常系 *@
                 <ChildContent>
-                    @Body
+                    @* Body内の操作イベントでセッションを延長する *@
+                    @* キー入力、またはマウスクリックのみ延長する。 *@
+                    @* （マウスポインタの移動では延長しない） *@
+                    <div @onkeydown="OnUserAction"
+                         @onclick="OnUserAction">
+                        @Body
+                    </div>
+                    <RadzenComponents />
                 </ChildContent>
-                <!-- エラー系 -->
+                @* エラー系 *@
                 <ErrorContent Context="ex">
                     <ErrorDisplay Exception="ex" />
                 </ErrorContent>
@@ -39,3 +52,42 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        AuthState.AuthenticationStateChanged += OnAuthChanged;
+    }
+
+    public void Dispose()
+    {
+        AuthState.AuthenticationStateChanged -= OnAuthChanged;
+    }
+
+    private void OnAuthChanged(Task<AuthenticationState> task)
+    {
+        _ = HandleAuthChangedAsync(task);
+    }
+
+    // サーバー側で定期的にセッションの有効性を監視しているので、
+    // タイムアウトしていたらログインページへリダイレクト
+    private async Task HandleAuthChangedAsync(Task<AuthenticationState> task)
+    {
+        var s = await task;
+        if (s.User?.Identity?.IsAuthenticated != true)
+        {
+            await InvokeAsync(() =>
+            {
+                var path = new Uri(Nav.Uri).AbsolutePath;
+                if (!path.Equals("/login", StringComparison.OrdinalIgnoreCase))
+                    Nav.NavigateTo("/login?expired=1", forceLoad: true);
+            });
+        }
+    }
+    private async Task OnUserAction()
+    {
+        var s = await AuthState.GetAuthenticationStateAsync();
+        var name = s.User?.Identity?.IsAuthenticated == true ? s.User.Identity.Name : null;
+        if (!string.IsNullOrEmpty(name)) Activity.Touch(name);
+    }
+}
