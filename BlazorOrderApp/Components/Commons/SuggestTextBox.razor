@@ -93,6 +93,7 @@
 
         try
         {
+            // 0.3秒間、置いてからデータ取得
             await Task.Delay(300, token);
             if (!token.IsCancellationRequested && FetchSuggestions != null)
             {
