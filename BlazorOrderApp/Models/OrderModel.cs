@@ -17,12 +17,9 @@ namespace BlazorOrderApp.Models
         public int 受注ID { get; set; }
         [Required(ErrorMessage = "受注日を入力してください")]
         public DateTime 受注日 { get; set; }
-        [Required(ErrorMessage = "得意先を入力してください")]
+        [Range(1, int.MaxValue, ErrorMessage = "得意先を選択してください")]
         public int 得意先ID { get; set; }
-        [Required(ErrorMessage = "得意先を入力してください")]
         public string 得意先名 { get; set; } = string.Empty;
-        [Required]
-        [Range(1, double.MaxValue, ErrorMessage = "合計金額は1円以上になるようにしてください")]
         public decimal 合計金額 { get; set; }
         public string? 備考 { get; set; }
         public int Version { get; set; }
@@ -57,6 +54,12 @@ namespace BlazorOrderApp.Models
                     yield return new ValidationResult($"明細 {i} の商品コードを入力してください", new[] { $"明細一覧[{i - 1}].{OrderModelConst.商品コードValidationPath[0]}" });
                 }
             }
+
+            // 合計金額の最終チェック（算出後に 1円以上）
+            var sum = 明細一覧.Sum(x => x.単価 * x.数量);
+            if (sum <= 0)
+                yield return new ValidationResult("合計金額は1円以上になるようにしてください",
+                    new[] { nameof(合計金額) });
         }
     }
 

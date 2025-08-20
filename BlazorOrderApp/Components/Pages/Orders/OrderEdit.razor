@@ -263,12 +263,12 @@ else
             }
         }
 
-        // ----- 明細を10行に固定 -----
+        // ----- 明細をMAX行に固定 -----
         if (受注Model.明細一覧 == null)
         {
             受注Model.明細一覧 = new List<OrderDetailModel>();
         }
-        while (受注Model.明細一覧.Count < 10)
+        while (受注Model.明細一覧.Count < OrderModelConst.MAX_受注明細_COUNT)
         {
             受注Model.明細一覧.Add(new OrderDetailModel());
         }
@@ -288,12 +288,9 @@ else
         再計算合計金額();
     }
 
-    private ValidationMessageStore? messageStore;
-
     protected override void OnParametersSet()
     {
         editContext = new EditContext(受注Model);
-        messageStore = new ValidationMessageStore(editContext);
     }
 
     // ==================================================
@@ -388,22 +385,13 @@ else
     // ==================================================
     private void On数量変更(OrderDetailModel m, object? value)
     {
-        if (!int.TryParse(value?.ToString(), out int v))
-        {
-            v = 0;
-            messageStore?.Add(() => m.数量, "数値を入力して下さい");
-            StateHasChanged();
-        }
+        if (!int.TryParse(value?.ToString(), out int v)) v = 0;
         m.数量 = v;
-
         再計算合計金額();
     }
 
     private void 再計算合計金額()
-    {
-        if (受注Model == null || 受注Model.明細一覧 == null) return;
-        受注Model.合計金額 = 受注Model.明細一覧.Sum(x => x.単価 * x.数量);
-    }
+        => 受注Model.合計金額 = 受注Model.明細一覧.Sum(x => x.単価 * x.数量);
 
     // ==================================================
     // 明細のクリア
@@ -433,64 +421,17 @@ else
     // ==================================================
     private async Task OnSubmit()
     {
-        // 入力チェック
-        messageStore?.Clear();
-        if (!IsValid()) return;
+        再計算合計金額();
 
-        if (IsEdit)
+        // Model側の DataAnnotations + IValidatableObject だけで判定
+        if (!editContext.Validate()) return;
+
+        if (IsEdit) 
             await 受注Repository.UpdateAsync(受注Model);
-        else
+        else        
             await 受注Repository.AddAsync(受注Model);
-
+        
         NavToIndex();
-    }
-
-    private bool IsValid()
-    {
-        if (editContext == null || messageStore == null) return false;
-        messageStore.Clear();
-
-        // 標準的なValidation
-        var isValid = editContext.Validate();
-
-        // 得意先名が候補に一致しているかチェック（先に全件取得済み）
-        if (!得意先全件.Any(c => c.得意先名 == 受注Model.得意先名))
-        {
-            messageStore?.Add(() => 受注Model.得意先名, "得意先は存在しません");
-        }
-
-        // 明細すべてに対してチェック
-        foreach (var (m, i) in 受注Model.明細一覧.Select((x, idx) => (x, idx)))
-        {
-            // 商品コードが入力されている場合のみ検証
-            if (!string.IsNullOrWhiteSpace(m.商品コード))
-            {
-                if (string.IsNullOrWhiteSpace(m.商品名))
-                {
-                    messageStore?.Add(() => 受注Model.明細一覧[i].商品コード, "商品が存在しません");
-                }
-                if (m.数量 <= 0)
-                {
-                    messageStore?.Add(() => 受注Model.明細一覧[i].数量, "数量は1以上を入力してください");
-                }
-            }
-            else
-            {
-                // 商品コード未入力 かつ 数量入力はエラー
-                if (m.数量 != 0)
-                {
-                    messageStore?.Add(() => 受注Model.明細一覧[i].商品コード, "商品コードを入力してください");
-                }
-            }
-        }
-
-        if (editContext!.GetValidationMessages().Any())
-        {
-            editContext!.NotifyValidationStateChanged();
-            return false;
-        }
-
-        return true;
     }
 
     private async Task OnDelete()
