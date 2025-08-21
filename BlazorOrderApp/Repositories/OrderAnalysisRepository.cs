@@ -63,7 +63,11 @@ namespace BlazorOrderApp.Repositories
             // 1週間の開始は: 今日 - ((int)DateTime.Today.DayOfWeek + 1) % 7日
             // つまり「(今日の曜日番号+1)%7」日進めると週の始まり
             // 例: 今日が金曜(5) → 6日進めて土曜(6)
-            int todayWeekday = (int)DateTime.Today.DayOfWeek; // 0=日曜, ... 6=土曜
+
+            var jst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+            var basedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, jst).Date;
+
+            int todayWeekday = (int)basedDate.DayOfWeek; // 0=日曜, ... 6=土曜
             var weekStartOffset = (todayWeekday + 1) % 7;
             var firstWeekStart = startDate.AddDays(weekStartOffset);
 

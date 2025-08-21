@@ -84,7 +84,10 @@
     {
         if (string.IsNullOrEmpty(StartDate))
         {
-            StartDate = DateTime.Today.ToString("yyyy/MM/dd");
+            // JSTで本日を取得
+            var jst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+            StartDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, jst)
+                                    .Date.ToString("yyyy/MM/dd");
         }
         // 初期表示
         await OnSearchAsync();

@@ -143,7 +143,10 @@
 
     private async Task LoadDataAsync()
     {
-        var endDate = DateTime.Today;
+
+        // JSTで本日を取得
+        var jst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+        var endDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, jst).Date;
         var startDate = SelectedPeriod switch
         {
             "1w" => endDate.AddDays(-6),

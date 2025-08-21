@@ -276,7 +276,8 @@ else
         // ----- 登録時 -----
         if (受注Model.受注ID == 0)
         {
-            受注Model.受注日 = DateTime.Today;
+            var jst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+            受注Model.受注日 = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, jst).Date;
         }
 
         // OnSubmitで自前でValidationするために必要
