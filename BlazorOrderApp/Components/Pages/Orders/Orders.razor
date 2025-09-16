@@ -88,6 +88,9 @@
             var jst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
             StartDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, jst)
                                     .Date.ToString("yyyy/MM/dd");
+
+            // デモ用に開始日を固定
+            StartDate = (new DateTime(2025, 8, 1)).ToString("yyyy/MM/dd");
         }
         // 初期表示
         await OnSearchAsync();
