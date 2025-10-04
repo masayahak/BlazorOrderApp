@@ -147,6 +147,10 @@
         // JSTで本日を取得
         var jst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
         var endDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, jst).Date;
+
+        // 開発用に固定日付
+        endDate = new DateTime(2025, 8, 15);
+
         var startDate = SelectedPeriod switch
         {
             "1w" => endDate.AddDays(-6),
