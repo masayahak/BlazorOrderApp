@@ -44,13 +44,24 @@ Blazor全体をServerレンダーモードにしたいが、Cookie認証を利�
                     <label for="password" class="form-label">パスワード</label>
                     <input id="password" name="Password" class="form-control" type="password" autocomplete="current-password" />
                 </div>
-                <button type="submit" class="btn btn-primary w-100">ログイン</button>
+   
+                <button type="submit" class="btn btn-primary w-100" name="handler" value="Login">ログイン</button>
+
+                <!-- デモログインボタン -->
+                <div class="mt-4 d-grid gap-2">
+                    <p>デモ専用簡易ボタン</p>
+
+                    <button type="submit" class="btn btn-danger w-100" name="handler" value="DemoAdmin">管理者でログイン</button>
+                    <button type="submit" class="btn btn-warning w-100" name="handler" value="DemoUser">一般でログイン</button>
+                </div>
+
             </form>
 
             @if (Model.LoginError)
             {
                 <div class="alert alert-danger mt-2">ログインに失敗しました。</div>
             }
+
         </div>
     </div>
 </div>
@@ -74,3 +85,34 @@ Blazor全体をServerレンダーモードにしたいが、Cookie認証を利�
         </div>
     </div>
 </div>
+
+<div class="developed">
+    <span>Developed by</span><a href="https://masayahak.jp/" target="_blank">HakamataSoft</a>
+</div>
+
+<style>
+    .developed {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin-top: 3rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+        .developed span {
+            margin-right: 0.4rem;
+        }
+
+        .developed a {
+            color: #3a78f2;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+            .developed a:hover {
+                color: #77aaff;
+                text-decoration: underline;
+             }
+</style>

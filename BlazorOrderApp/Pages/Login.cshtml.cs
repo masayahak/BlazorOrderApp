@@ -31,24 +31,36 @@ namespace BlazorOrderApp.Pages
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync(string handler)
+        {
+            switch (handler)
+            {
+                case "Login":
+                    return await Login(UserName, Password);
+                case "DemoAdmin":
+                    return await Login("admin", "admin765");
+                case "DemoUser":
+                    return await Login("test", "test326");
+                default:
+                    return Page();
+            }
+        }
+
+        private async Task<IActionResult> Login(string user, string pass)
         {
             var loginUser = new Services.LoginModel
             {
-                UserName = UserName,
-                Password = Password
+                UserName = user,
+                Password = pass
             };
+
             var success = await _authService.LoginAsync(loginUser);
 
             if (success)
-            {
                 return Redirect("/dashboard");
-            }
-            else
-            {
-                LoginError = true;
-                return Page();
-            }
+
+            LoginError = true;
+            return Page();
         }
 
     }
