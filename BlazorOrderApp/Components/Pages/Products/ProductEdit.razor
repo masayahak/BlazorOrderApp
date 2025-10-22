@@ -36,7 +36,7 @@
                         class="form-control" style="width:160px;"
                         autocomplete="off"
                            data-tab="10" />
-                <ValidationMessage For="() => model.商品コード" />
+                <ValidationMessage For="() => model.商品コード" class="text-danger ms-2" />
             }
         </div>
         <div class="mb-3 d-flex align-items-center">
@@ -46,17 +46,20 @@
                        class="form-control" style="width:320px;"
                        autocomplete="off"
                        data-tab="20" />
-            <ValidationMessage For="() => model.商品名" class="text-danger" />
+            <ValidationMessage For="() => model.商品名" class="text-danger ms-2" />
         </div>
         <div class="mb-3 d-flex align-items-center">
             <label for="単価" class="form-label mb-0 me-2" style="width: 80px;">単価</label>
-            <InputNumber id="単価" required min="0" max="999999999" step="1"
-                         @bind-Value="model.単価"
-                         class="form-control text-end" style="width:160px;" 
-                         autocomplete="off"
-                         data-tab="30" />
-            <ValidationMessage For="() => model.単価" class="text-danger" />
+            <InputText id="単価"
+                       @bind-Value="単価入力値"
+                       class="form-control text-end"
+                       style="width:160px;"
+                       autocomplete="off"
+                       data-tab="30"
+                       @oninput="OnUnitPriceInput" />
+            <ValidationMessage For="() => model.単価" class="text-danger ms-2" />
         </div>
+
         <div class="mb-3 d-flex align-items-center">
             <label for="備考" class="form-label mb-0 me-2" style="width: 80px;">備考</label>
             <InputText id="備考" 
@@ -118,6 +121,9 @@
     private bool isEdit => !string.IsNullOrEmpty(商品コード);
     private bool showDeleteConfirm = false;
 
+    private string 単価入力値 = "";
+    private ValidationMessageStore? messageStore;
+
     protected override async Task OnInitializedAsync()
     {
         if (isEdit)
@@ -135,7 +141,39 @@
 
         // OnSubmitで自前でValidationするために必要
         editContext = new EditContext(model);
+        messageStore = new ValidationMessageStore(editContext);
+
+        // 初期表示用
+        単価入力値 = model.単価?.ToString() ?? "";
     }
+
+    // 単価入力時の正の整数かつIntキャストチェック追加
+    private void OnUnitPriceInput(ChangeEventArgs e)
+    {
+        単価入力値 = e.Value?.ToString() ?? "";
+        messageStore!.Clear(editContext.Field(nameof(model.単価)));
+
+        // 小数点・記号・英字チェック
+        if (単価入力値.Any(c => !char.IsDigit(c)))
+        {
+            messageStore.Add(editContext.Field(nameof(model.単価)), "単価は正の整数のみ入力できます。");
+            editContext.NotifyValidationStateChanged();
+            return;
+        }
+
+        // 数値変換
+        if (int.TryParse(単価入力値, out var value))
+        {
+            model.単価 = value;
+        }
+        else
+        {
+            messageStore.Add(editContext.Field(nameof(model.単価)), "単価が不正です。");
+        }
+
+        editContext.NotifyValidationStateChanged();
+    }
+
 
     private string? errorMessage = null;
     private async Task OnSubmit()

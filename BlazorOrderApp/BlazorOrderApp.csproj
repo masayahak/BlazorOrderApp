@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <Content Include="Data\database.db">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
