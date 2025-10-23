@@ -48,10 +48,6 @@ builder.Services.AddServerSideBlazor(options =>
     options.DetailedErrors = true;
 });
 
-// Azure Application Insights
-builder.Services.AddApplicationInsightsTelemetry();
-
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
