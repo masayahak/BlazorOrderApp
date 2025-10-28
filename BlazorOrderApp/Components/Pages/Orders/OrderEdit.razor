@@ -121,6 +121,7 @@ else
                         <td>
                             <input type="number"
                                    value="@m.数量"
+                                   @oninput="On数量Input"
                                    @onchange="e => On数量変更(m, e.Value)"
                                    class="form-control text-end" min="0" max="999" autocomplete="off" 
                                    data-tab="@(@baseTab + 2)" />
@@ -380,6 +381,52 @@ else
         }
         再計算合計金額();
     }
+
+    // ==================================================
+    // 数量入力時の正の整数かつIntキャストチェック追加
+    // ==================================================
+    private string 数量入力値 = "";
+    private ValidationMessageStore? messageStore;
+
+    // ==================================================
+    // 数量入力時の正の整数かつ Int キャストチェック追加
+    // ==================================================
+    private void On数量Input(ChangeEventArgs e)
+    {
+        var 数量入力値 = e.Value?.ToString() ?? "";
+        var field = editContext.Field(nameof(OrderDetailModel.数量));
+
+        messageStore ??= new ValidationMessageStore(editContext);
+        messageStore.Clear(field);
+
+        // 小数点・記号・英字チェック
+        if (数量入力値.Any(c => !char.IsDigit(c)))
+        {
+            messageStore.Add(field, "数量は正の整数のみ入力できます。");
+            editContext.NotifyValidationStateChanged();
+            return;
+        }
+
+        // 数値変換
+        if (int.TryParse(数量入力値, out var value))
+        {
+            // 入力対象行を特定して反映
+            var currentDetail = 受注Model.明細一覧
+                .FirstOrDefault(x => x.数量.ToString() == 数量入力値);
+            if (currentDetail != null)
+            {
+                currentDetail.数量 = value;
+                再計算合計金額();
+            }
+        }
+        else
+        {
+            messageStore.Add(field, "数量が不正です。");
+        }
+
+        editContext.NotifyValidationStateChanged();
+    }
+
 
     // ==================================================
     // 金額の再計算関連
